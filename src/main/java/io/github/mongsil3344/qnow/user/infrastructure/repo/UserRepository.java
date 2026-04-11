@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmailAndStatusNot(String email, UserStatus status);
     boolean existsByUsernameAndStatusNot(String username, UserStatus status);
+
+    boolean existsByIdAndStatusNot(UUID id, UserStatus status);
 }

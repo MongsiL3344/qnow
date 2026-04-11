@@ -1,5 +1,6 @@
 package io.github.mongsil3344.qnow.organization.domain;
 
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDateTime;
 import java.util.UUID;
 

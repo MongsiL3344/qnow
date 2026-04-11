@@ -45,11 +45,10 @@ public class UserGroup {
     private UserGroupStatus status;
 
     @Builder
-    private UserGroup(UUID userId, Organization organization, UserGroupRole role, UserGroupStatus status) {
+    private UserGroup(UUID userId, Organization organization, UserGroupRole role) {
         this.userId = userId;
         this.organization = organization;
         this.role = role;
-        this.status = status;
     }
 
     @PrePersist
@@ -57,9 +56,6 @@ public class UserGroup {
         if (role == null) {
             role = UserGroupRole.USER;
         }
-
-        if (status == null) {
-            status = UserGroupStatus.ACTIVE;
-        }
+        status = UserGroupStatus.ACTIVE;
     }
 }

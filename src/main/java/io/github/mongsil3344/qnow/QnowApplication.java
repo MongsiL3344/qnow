@@ -2,7 +2,9 @@ package io.github.mongsil3344.qnow;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.modulith.Modulithic;
 
+@Modulithic
 @SpringBootApplication
 public class QnowApplication {
 

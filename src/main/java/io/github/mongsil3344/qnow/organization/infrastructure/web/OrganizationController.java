@@ -16,7 +16,7 @@ public class OrganizationController {
 
     private final CreateOrganizationService createOrganizationService;
 
-    @PostMapping("/organization")
+    @PostMapping("/organizations")
     public ResponseEntity<Void> createOrganization (@Valid @RequestBody CreateOrganizationRequest createOrganizationRequest) {
         createOrganizationService.createOrganization(
             createOrganizationRequest.userId(),

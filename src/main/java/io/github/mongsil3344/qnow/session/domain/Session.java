@@ -30,6 +30,9 @@ public class Session {
     @Column(name = "organization_id", nullable = false)
     private UUID organizationId;
 
+    @Column(name = "creator_id", nullable = false)
+    private UUID creatorId;
+
     @Column(nullable = false, length = 255)
     private String title;
 
@@ -44,8 +47,9 @@ public class Session {
     private LocalDateTime endAt;
 
     @Builder
-    private Session(UUID organizationId, LocalDateTime startAt, LocalDateTime endAt, String title) {
+    private Session(UUID organizationId, UUID creatorId, LocalDateTime startAt, LocalDateTime endAt, String title) {
         this.organizationId = organizationId;
+        this.creatorId = creatorId;
         this.startAt = startAt;
         this.endAt = endAt;
         this.title = title;

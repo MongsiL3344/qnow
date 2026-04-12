@@ -42,6 +42,7 @@ CREATE TABLE sessions
 (
   id              CHAR(36)     NOT NULL COMMENT 'PK',
   organization_id CHAR(36)     NOT NULL COMMENT '조직 PK',
+  creator_id      CHAR(36)     NOT NULL COMMENT '세션 개설자 PK',
   title           VARCHAR(255) NOT NULL COMMENT '세션 제목',
   status          VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE' COMMENT '세션의 상태',
   start_at        DATETIME     NULL     DEFAULT NULL COMMENT '세션 시작 시간',

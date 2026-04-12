@@ -2,6 +2,8 @@ package io.github.mongsil3344.qnow.global.error;
 
 import io.github.mongsil3344.qnow.organization.application.exception.DuplicateNameException;
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
+import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
+import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdminRequiredException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateEmailException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateUsernameException;
 import org.springframework.http.HttpStatus;
@@ -45,6 +47,22 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("USER_NOT_FOUND", e.getMessage()));
     }
+
+    // 세션 - 조직에 소속되어있지 않은 유저의 세션 개설 요청
+    @ExceptionHandler(NotOrganizationMemberException.class)
+    public ResponseEntity<ErrorResponse> handleNotOrganizationMember(NotOrganizationMemberException e) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("NOT_ORGANIZATION_MEMBER", e.getMessage()));
+    }
+
+    @ExceptionHandler(OrganizationAdminRequiredException.class)
+    public ResponseEntity<ErrorResponse> handleOrganizationAdminRequired(OrganizationAdminRequiredException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("ORGANIZATION_ADMIN_REQUIRED", e.getMessage()));
+    }
+
 
     // DTO - 필드 검증 예외
     @ExceptionHandler(MethodArgumentNotValidException.class)

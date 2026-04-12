@@ -47,6 +47,7 @@ CREATE TABLE sessions
 (
   id              CHAR(36)     NOT NULL,
   organization_id CHAR(36)     NOT NULL,
+  creator_id      CHAR(36)     NOT NULL,
   title           VARCHAR(255) NOT NULL,
   status          VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
   start_at        TIMESTAMP    NULL,

@@ -15,12 +15,12 @@ public class OrganizationQueryApiImpl implements OrganizationQueryApi {
 
     @Override
     public boolean existsUserInOrganization(UUID userId, UUID organizationId) {
-        return userGroupRepository.existsByUserIdAndOrganizationId(userId, organizationId);
+        return userGroupRepository.existsByUserIdAndOrganizationIdAndDeletedAtIsNull(userId, organizationId);
     }
 
     @Override
     public boolean isAdminInOrganization(UUID userId, UUID organizationId) {
-        return userGroupRepository.existsByUserIdAndOrganizationIdAndRole(
+        return userGroupRepository.existsByUserIdAndOrganizationIdAndRoleAndDeletedAtIsNull(
                 userId,
                 organizationId,
                 UserGroupRole.ADMIN

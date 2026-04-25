@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserGroupRepository extends JpaRepository<UserGroup, UUID> {
-    boolean existsByUserIdAndOrganizationId(UUID userId, UUID organizationId);
+    boolean existsByUserIdAndOrganizationIdAndDeletedAtIsNull(UUID userId, UUID organizationId);
 
-    boolean existsByUserIdAndOrganizationIdAndRole(UUID userId, UUID organizationId, UserGroupRole role);
+    boolean existsByUserIdAndOrganizationIdAndRoleAndDeletedAtIsNull(UUID userId, UUID organizationId, UserGroupRole role);
 }

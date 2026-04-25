@@ -1,13 +1,10 @@
 package io.github.mongsil3344.qnow.organization.domain;
 
-import jakarta.validation.constraints.Pattern;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,15 +34,11 @@ public class Organization {
     @Column(length = 255)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private OrganizationStatus status;
-
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     @Builder
     private Organization(String name, String detail, String password) {
@@ -56,12 +49,8 @@ public class Organization {
 
     @PrePersist
     void initialize() {
-        if (status == null) {
-            status = OrganizationStatus.ACTIVE;
-        }
-
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = Instant.now();
         }
     }
 }

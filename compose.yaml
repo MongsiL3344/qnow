@@ -6,13 +6,13 @@ services:
     working_dir: /workspace
     command: ["./gradlew", "bootRun", "--no-daemon"]
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/qnow?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/qnow
       SPRING_DATASOURCE_USERNAME: qnow
       SPRING_DATASOURCE_PASSWORD: qnow
       SPRING_DATA_REDIS_HOST: redis
@@ -24,24 +24,23 @@ services:
       - gradle-cache:/home/gradle/.gradle
     restart: unless-stopped
 
-  mysql:
-    image: mysql:8.4
+  postgres:
+    image: postgres:17-alpine
     environment:
-      MYSQL_DATABASE: qnow
-      MYSQL_USER: qnow
-      MYSQL_PASSWORD: qnow
-      MYSQL_ROOT_PASSWORD: root
+      POSTGRES_DB: qnow
+      POSTGRES_USER: qnow
+      POSTGRES_PASSWORD: qnow
       TZ: Asia/Seoul
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      test: ["CMD-SHELL", "pg_isready -U qnow -d qnow"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 20s
+      start_period: 10s
     restart: unless-stopped
 
   redis:
@@ -61,5 +60,5 @@ services:
 
 volumes:
   gradle-cache:
-  mysql-data:
+  postgres-data:
   redis-data:

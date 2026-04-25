@@ -1,12 +1,10 @@
 package io.github.mongsil3344.qnow.user.domain;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,33 +37,24 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private UserStatus status;
-
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     @Builder
-    private User(String email, String nickname, String username, String password, UserStatus status) {
+    private User(String email, String nickname, String username, String password) {
         this.email = email;
         this.nickname = nickname;
         this.username = username;
         this.password = password;
-        this.status = status;
     }
 
     @PrePersist
     void initialize() {
-        if (status == null) {
-            status = UserStatus.ACTIVE;
-        }
-
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = Instant.now();
         }
     }
 }

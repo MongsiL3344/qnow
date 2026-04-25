@@ -3,7 +3,6 @@ package io.github.mongsil3344.qnow.organization.application;
 import io.github.mongsil3344.qnow.organization.application.exception.DuplicateNameException;
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
 import io.github.mongsil3344.qnow.organization.domain.Organization;
-import io.github.mongsil3344.qnow.organization.domain.OrganizationStatus;
 import io.github.mongsil3344.qnow.organization.domain.UserGroup;
 import io.github.mongsil3344.qnow.organization.domain.UserGroupRole;
 import io.github.mongsil3344.qnow.organization.infrastructure.repo.OrganizationRepository;
@@ -31,7 +30,7 @@ public class CreateOrganizationService {
             throw new UserNotFoundException();
         }
 
-        boolean existName = organizationRepository.existsByNameAndStatusNot(name, OrganizationStatus.DELETED);
+        boolean existName = organizationRepository.existsByNameAndDeletedAtIsNull(name);
         if (existName) {
             throw new DuplicateNameException();
         }

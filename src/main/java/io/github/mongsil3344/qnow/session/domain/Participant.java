@@ -1,11 +1,10 @@
 package io.github.mongsil3344.qnow.session.domain;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -36,21 +35,22 @@ public class Participant {
     @JoinColumn(name = "session_id", nullable = false)
     private Session session;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private ParticipantStatus status;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
     @Builder
-    private Participant(UUID userId, Session session, ParticipantStatus status) {
+    private Participant(UUID userId, Session session) {
         this.userId = userId;
         this.session = session;
-        this.status = status;
     }
 
     @PrePersist
-    void initializeStatus() {
-        if (status == null) {
-            status = ParticipantStatus.ACTIVE;
+    void initialize() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.github.mongsil3344.qnow.session.domain;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -10,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -40,11 +42,24 @@ public class Presentation {
     @Column(nullable = false, length = 255)
     private String title;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     @Builder
     private Presentation(Session session, Participant presenter, Integer presentationOrder, String title) {
         this.session = session;
         this.presenter = presenter;
         this.presentationOrder = presentationOrder;
         this.title = title;
+    }
+
+    @PrePersist
+    void initialize() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
     }
 }

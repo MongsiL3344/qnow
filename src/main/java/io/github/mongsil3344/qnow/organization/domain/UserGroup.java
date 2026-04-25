@@ -1,5 +1,6 @@
 package io.github.mongsil3344.qnow.organization.domain;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -40,9 +41,11 @@ public class UserGroup {
     @Column(nullable = false, length = 20)
     private UserGroupRole role;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private UserGroupStatus status;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
     @Builder
     private UserGroup(UUID userId, Organization organization, UserGroupRole role) {
@@ -56,6 +59,9 @@ public class UserGroup {
         if (role == null) {
             role = UserGroupRole.USER;
         }
-        status = UserGroupStatus.ACTIVE;
+
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
     }
 }

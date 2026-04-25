@@ -1,7 +1,6 @@
 package io.github.mongsil3344.qnow.user.application;
 
 import io.github.mongsil3344.qnow.user.domain.User;
-import io.github.mongsil3344.qnow.user.domain.UserStatus;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateEmailException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateUsernameException;
 import io.github.mongsil3344.qnow.user.infrastructure.repo.UserRepository;
@@ -19,8 +18,8 @@ public class SignUpService {
     @Transactional
     public void signUp(String email, String nickname, String username, String password) {
 
-        boolean existEmail = userRepository.existsByEmailAndStatusNot(email, UserStatus.DELETED);
-        boolean existUsername = userRepository.existsByUsernameAndStatusNot(username, UserStatus.DELETED);
+        boolean existEmail = userRepository.existsByEmailAndDeletedAtIsNull(email);
+        boolean existUsername = userRepository.existsByUsernameAndDeletedAtIsNull(username);
 
         if (existEmail) {
             throw new DuplicateEmailException();

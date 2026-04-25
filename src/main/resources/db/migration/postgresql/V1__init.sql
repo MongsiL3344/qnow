@@ -191,6 +191,13 @@ ALTER TABLE sessions
     ON DELETE NO ACTION
     ON UPDATE NO ACTION;
 
+ALTER TABLE sessions
+  ADD CONSTRAINT FK_users_TO_sessions
+    FOREIGN KEY (creator_id)
+    REFERENCES users (id)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
 ALTER TABLE presentations
   ADD CONSTRAINT FK_sessions_TO_presentations
     FOREIGN KEY (session_id)

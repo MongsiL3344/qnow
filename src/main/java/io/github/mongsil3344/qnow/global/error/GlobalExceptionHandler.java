@@ -1,9 +1,14 @@
 package io.github.mongsil3344.qnow.global.error;
 
 import io.github.mongsil3344.qnow.organization.application.exception.DuplicateNameException;
+import io.github.mongsil3344.qnow.organization.application.exception.AlreadyOrganizationMemberException;
+import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationPasswordException;
+import io.github.mongsil3344.qnow.organization.application.exception.OrganizationNotFoundException;
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
+import io.github.mongsil3344.qnow.session.application.exception.AlreadySessionParticipantException;
 import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
 import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdminRequiredException;
+import io.github.mongsil3344.qnow.session.application.exception.SessionNotFoundException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateEmailException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateUsernameException;
 import org.springframework.http.HttpStatus;
@@ -48,6 +53,27 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("USER_NOT_FOUND", e.getMessage()));
     }
 
+    @ExceptionHandler(OrganizationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOrganizationNotFound(OrganizationNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("ORGANIZATION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(AlreadyOrganizationMemberException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadyOrganizationMember(AlreadyOrganizationMemberException e) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("ALREADY_ORGANIZATION_MEMBER", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidOrganizationPasswordException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidOrganizationPassword(InvalidOrganizationPasswordException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("INVALID_ORGANIZATION_PASSWORD", e.getMessage()));
+    }
+
     // 세션 - 조직에 소속되어있지 않은 유저의 세션 개설 요청
     @ExceptionHandler(NotOrganizationMemberException.class)
     public ResponseEntity<ErrorResponse> handleNotOrganizationMember(NotOrganizationMemberException e) {
@@ -61,6 +87,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("ORGANIZATION_ADMIN_REQUIRED", e.getMessage()));
+    }
+
+    @ExceptionHandler(SessionNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleSessionNotFound(SessionNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(AlreadySessionParticipantException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadySessionParticipant(AlreadySessionParticipantException e) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("ALREADY_SESSION_PARTICIPANT", e.getMessage()));
     }
 
 

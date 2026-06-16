@@ -25,7 +25,6 @@ CREATE TABLE users
   id         UUID         NOT NULL,
   email      VARCHAR(255) NOT NULL,
   nickname   VARCHAR(30)  NOT NULL,
-  username   VARCHAR(30)  NOT NULL,
   password   VARCHAR(255) NOT NULL,
   created_at TIMESTAMPTZ  NOT NULL,
   deleted_at TIMESTAMPTZ  NULL,
@@ -36,7 +35,6 @@ COMMENT ON TABLE users IS '유저 테이블';
 COMMENT ON COLUMN users.id IS 'PK';
 COMMENT ON COLUMN users.email IS '이메일';
 COMMENT ON COLUMN users.nickname IS '닉네임';
-COMMENT ON COLUMN users.username IS '로그인할때 쓰는 아이디';
 COMMENT ON COLUMN users.password IS '해시 된 비밀번호';
 COMMENT ON COLUMN users.created_at IS '계정 생성 시각';
 COMMENT ON COLUMN users.deleted_at IS '계정 삭제 시각';
@@ -143,10 +141,6 @@ COMMENT ON COLUMN presentations.deleted_at IS '발표 삭제 시각';
 -- 소프트딜리트 제약조건
 CREATE UNIQUE INDEX uq_users_active_email
   ON users (email)
-  WHERE deleted_at IS NULL;
-
-CREATE UNIQUE INDEX uq_users_active_username
-  ON users (username)
   WHERE deleted_at IS NULL;
 
 CREATE UNIQUE INDEX uq_organizations_active_name

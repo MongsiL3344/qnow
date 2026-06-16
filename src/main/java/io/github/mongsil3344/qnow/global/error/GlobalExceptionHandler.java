@@ -10,7 +10,6 @@ import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationM
 import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdminRequiredException;
 import io.github.mongsil3344.qnow.session.application.exception.SessionNotFoundException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateEmailException;
-import io.github.mongsil3344.qnow.user.application.exception.DuplicateUsernameException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -27,14 +26,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse("DUPLICATE_EMAIL", e.getMessage()));
-    }
-
-    // 유저 - 아이디 중복 예외
-    @ExceptionHandler(DuplicateUsernameException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateUsername(DuplicateUsernameException e) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse("DUPLICATE_USERNAME", e.getMessage()));
     }
 
     // 조직 - 조직명 중복 예외

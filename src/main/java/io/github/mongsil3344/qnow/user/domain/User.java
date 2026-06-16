@@ -31,9 +31,6 @@ public class User {
     @Column(nullable = false, length = 30)
     private String nickname;
 
-    @Column(nullable = false, length = 30)
-    private String username;
-
     @Column(nullable = false, length = 255)
     private String password;
 
@@ -44,10 +41,9 @@ public class User {
     private Instant deletedAt;
 
     @Builder
-    private User(String email, String nickname, String username, String password) {
+    private User(String email, String nickname, String password) {
         this.email = email;
         this.nickname = nickname;
-        this.username = username;
         this.password = password;
     }
 

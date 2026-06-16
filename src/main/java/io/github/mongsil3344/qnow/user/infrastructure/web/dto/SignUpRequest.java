@@ -14,10 +14,6 @@ public record SignUpRequest(
     @Size(max = 30, message = "닉네임은 30자를 넘을 수 없습니다")
     String nickname,
 
-    @NotBlank(message = "아이디는 비어 있을 수 없습니다")
-    @Size(max = 30, message = "아이디는 30자를 넘을 수 없습니다")
-    String username,
-
     @NotBlank(message = "비밀번호는 비어 있을 수 없습니다")
     @Size(min = 8, max = 255, message = "비밀번호는 8자 이상 255자 이하여야 합니다")
     String password

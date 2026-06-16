@@ -21,7 +21,6 @@ public class UserController {
         signUpService.signUp(
                 signUpRequest.email(),
                 signUpRequest.nickname(),
-                signUpRequest.username(),
                 signUpRequest.password()
         );
 

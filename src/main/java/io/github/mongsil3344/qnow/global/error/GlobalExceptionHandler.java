@@ -12,6 +12,7 @@ import io.github.mongsil3344.qnow.session.application.exception.SessionNotFoundE
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateEmailException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -92,6 +93,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse("ALREADY_SESSION_PARTICIPANT", e.getMessage()));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException e) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("AUTHENTICATION_FAILED", "이메일 또는 비밀번호가 올바르지 않습니다"));
     }
 
 

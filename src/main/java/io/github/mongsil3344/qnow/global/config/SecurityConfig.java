@@ -1,5 +1,6 @@
 package io.github.mongsil3344.qnow.global.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,21 +15,39 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider) throws Exception {
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AuthenticationProvider authenticationProvider,
+            SecurityContextRepository securityContextRepository
+    ) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .rememberMe(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .securityContext(securityContext -> securityContext.securityContextRepository(securityContextRepository))
                 .authenticationProvider(authenticationProvider)
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/signup", "/login").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                        )
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN)
+                        )
+                )
                 .cors(Customizer.withDefaults())
                 .build();
     }
@@ -43,6 +62,11 @@ public class SecurityConfig {
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
     }
 
     @Bean

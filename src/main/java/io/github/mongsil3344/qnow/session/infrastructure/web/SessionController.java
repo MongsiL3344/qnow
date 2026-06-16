@@ -3,12 +3,13 @@ package io.github.mongsil3344.qnow.session.infrastructure.web;
 import io.github.mongsil3344.qnow.session.application.CreateSessionService;
 import io.github.mongsil3344.qnow.session.application.JoinSessionService;
 import io.github.mongsil3344.qnow.session.infrastructure.web.dto.CreateSessionRequest;
-import io.github.mongsil3344.qnow.session.infrastructure.web.dto.JoinSessionRequest;
+import io.github.mongsil3344.qnow.user.api.UserPrincipal;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,9 +26,12 @@ public class SessionController {
 
     // 세션 생성 API
     @PostMapping("/{organizationId}/sessions")
-    public ResponseEntity<Void> createSession(@PathVariable UUID organizationId, @Valid @RequestBody CreateSessionRequest createSessionRequest) {
-        // TODO: 나중에 인증정보에서 가져오도록 수정해야함
-        createSessionService.createSession(organizationId, createSessionRequest.creatorId(), createSessionRequest.title());
+    public ResponseEntity<Void> createSession(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID organizationId,
+        @Valid @RequestBody CreateSessionRequest createSessionRequest
+    ) {
+        createSessionService.createSession(organizationId, principal.id(), createSessionRequest.title());
 
         return ResponseEntity
             .status(HttpStatus.CREATED)
@@ -37,12 +41,11 @@ public class SessionController {
     // 세션 참여 API
     @PostMapping("/{organizationId}/sessions/{sessionId}/participants")
     public ResponseEntity<Void> joinSession(
+        @AuthenticationPrincipal UserPrincipal principal,
         @PathVariable UUID organizationId,
-        @PathVariable UUID sessionId,
-        @Valid @RequestBody JoinSessionRequest joinSessionRequest
+        @PathVariable UUID sessionId
     ) {
-        // TODO: 나중에 인증정보에서 가져오도록 수정해야함
-        joinSessionService.joinSession(organizationId, sessionId, joinSessionRequest.userId());
+        joinSessionService.joinSession(organizationId, sessionId, principal.id());
 
         return ResponseEntity
             .status(HttpStatus.CREATED)

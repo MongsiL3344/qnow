@@ -3,6 +3,7 @@ package io.github.mongsil3344.qnow.global.error;
 import io.github.mongsil3344.qnow.organization.application.exception.DuplicateNameException;
 import io.github.mongsil3344.qnow.organization.application.exception.AlreadyOrganizationMemberException;
 import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationPasswordException;
+import io.github.mongsil3344.qnow.organization.application.exception.OrganizationMemberRequiredException;
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationNotFoundException;
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
 import io.github.mongsil3344.qnow.session.application.exception.AlreadySessionParticipantException;
@@ -64,6 +65,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("INVALID_ORGANIZATION_PASSWORD", e.getMessage()));
+    }
+
+    @ExceptionHandler(OrganizationMemberRequiredException.class)
+    public ResponseEntity<ErrorResponse> handleOrganizationMemberRequired(OrganizationMemberRequiredException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("ORGANIZATION_MEMBER_REQUIRED", e.getMessage()));
     }
 
     // 세션 - 조직에 소속되어있지 않은 유저의 세션 개설 요청

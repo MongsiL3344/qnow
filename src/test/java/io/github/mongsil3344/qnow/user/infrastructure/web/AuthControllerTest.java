@@ -74,6 +74,25 @@ class AuthControllerTest {
     }
 
     @Test
+    void logoutInvalidatesAuthenticatedSession() throws Exception {
+        String password = "password123";
+        User user = saveUser("logout-" + UUID.randomUUID() + "@example.com", password);
+        MockHttpSession session = login(user.getEmail(), password);
+
+        mockMvc.perform(post("/logout")
+                .session(session))
+            .andExpect(status().isOk());
+
+        assertThat(session.isInvalid()).isTrue();
+    }
+
+    @Test
+    void logoutRequiresAuthentication() throws Exception {
+        mockMvc.perform(post("/logout"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void protectedApiRequiresAuthentication() throws Exception {
         mockMvc.perform(post("/organizations")
                 .contentType(MediaType.APPLICATION_JSON)

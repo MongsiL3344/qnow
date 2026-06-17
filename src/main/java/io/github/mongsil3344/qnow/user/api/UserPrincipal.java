@@ -15,21 +15,24 @@ public final class UserPrincipal implements UserDetails {
 
     private final UUID id;
     private final String email;
+    private final String nickname;
     private final String password;
     private final List<GrantedAuthority> authorities;
 
-    public UserPrincipal(UUID id, String email, String password) {
-        this(id, email, password, List.of());
+    public UserPrincipal(UUID id, String email, String nickname, String password) {
+        this(id, email, nickname, password, List.of());
     }
 
     public UserPrincipal(
         UUID id,
         String email,
+        String nickname,
         String password,
         Collection<? extends GrantedAuthority> authorities
     ) {
         this.id = Objects.requireNonNull(id);
         this.email = Objects.requireNonNull(email);
+        this.nickname = Objects.requireNonNull(nickname);
         this.password = Objects.requireNonNull(password);
         this.authorities = List.copyOf(Objects.requireNonNull(authorities));
     }
@@ -40,6 +43,10 @@ public final class UserPrincipal implements UserDetails {
 
     public String email() {
         return email;
+    }
+
+    public String nickname() {
+        return nickname;
     }
 
     @Override

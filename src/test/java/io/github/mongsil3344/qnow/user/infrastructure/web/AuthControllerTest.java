@@ -1,7 +1,9 @@
 package io.github.mongsil3344.qnow.user.infrastructure.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.github.mongsil3344.qnow.organization.domain.Organization;
@@ -80,6 +82,21 @@ class AuthControllerTest {
     }
 
     @Test
+    void currentUserReturnsAuthenticatedUserInfo() throws Exception {
+        String password = "password123";
+        String nickname = "nickname-" + UUID.randomUUID().toString().substring(0, 8);
+        User user = saveUser("me-" + UUID.randomUUID() + "@example.com", nickname, password);
+        MockHttpSession session = login(user.getEmail(), password);
+
+        mockMvc.perform(get("/users/me")
+                .session(session))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(user.getId().toString()))
+            .andExpect(jsonPath("$.email").value(user.getEmail()))
+            .andExpect(jsonPath("$.nickname").value(nickname));
+    }
+
+    @Test
     void createOrganizationUsesAuthenticatedUserInsteadOfRequestBodyUserId() throws Exception {
         String password = "password123";
         User authenticatedUser = saveUser("auth-" + UUID.randomUUID() + "@example.com", password);
@@ -115,9 +132,13 @@ class AuthControllerTest {
     }
 
     private User saveUser(String email, String rawPassword) {
+        return saveUser(email, "tester", rawPassword);
+    }
+
+    private User saveUser(String email, String nickname, String rawPassword) {
         User user = User.builder()
             .email(email)
-            .nickname("tester")
+            .nickname(nickname)
             .password(passwordEncoder.encode(rawPassword))
             .build();
 

@@ -20,6 +20,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmailAndDeletedAtIsNull(email)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
-        return new UserPrincipal(user.getId(), user.getEmail(), user.getPassword());
+        return new UserPrincipal(user.getId(), user.getEmail(), user.getNickname(), user.getPassword());
     }
 }

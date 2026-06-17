@@ -1,6 +1,6 @@
-package io.github.mongsil3344.qnow.organizationlist.infrastructure.web.dto;
+package io.github.mongsil3344.qnow.organization.infrastructure.web.dto;
 
-import io.github.mongsil3344.qnow.organizationlist.application.dto.OrganizationSummaryResult;
+import io.github.mongsil3344.qnow.organization.application.dto.OrganizationSummaryResult;
 import java.util.UUID;
 
 public record OrganizationSummaryResponse(

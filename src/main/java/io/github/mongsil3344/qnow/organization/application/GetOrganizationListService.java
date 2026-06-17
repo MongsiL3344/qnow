@@ -1,8 +1,8 @@
-package io.github.mongsil3344.qnow.organizationlist.application;
+package io.github.mongsil3344.qnow.organization.application;
 
 import io.github.mongsil3344.qnow.organization.api.OrganizationInfo;
 import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
-import io.github.mongsil3344.qnow.organizationlist.application.dto.OrganizationSummaryResult;
+import io.github.mongsil3344.qnow.organization.application.dto.OrganizationSummaryResult;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;

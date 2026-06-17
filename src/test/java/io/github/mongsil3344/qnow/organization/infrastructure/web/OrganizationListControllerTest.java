@@ -1,4 +1,4 @@
-package io.github.mongsil3344.qnow.organizationlist.infrastructure.web;
+package io.github.mongsil3344.qnow.organization.infrastructure.web;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;

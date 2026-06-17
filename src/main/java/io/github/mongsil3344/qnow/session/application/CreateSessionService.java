@@ -8,6 +8,7 @@ import io.github.mongsil3344.qnow.session.domain.Session;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.ParticipantRepository;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class CreateSessionService {
     private final OrganizationQueryApi organizationQueryApi;
 
     @Transactional
-    public void createSession(UUID organizationId, UUID creatorId, String title) {
+    public void createSession(UUID organizationId, UUID creatorId, String title, Instant startAt) {
 
         boolean existUserInGroup = organizationQueryApi.existsUserInOrganization(creatorId, organizationId);
         if (!existUserInGroup) {
@@ -37,6 +38,7 @@ public class CreateSessionService {
             .organizationId(organizationId)
             .creatorId(creatorId)
             .title(title)
+            .startAt(startAt)
             .build();
 
         Session savedSession = sessionRepository.save(newSession);

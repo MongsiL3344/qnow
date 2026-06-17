@@ -31,7 +31,12 @@ public class SessionController {
         @PathVariable UUID organizationId,
         @Valid @RequestBody CreateSessionRequest createSessionRequest
     ) {
-        createSessionService.createSession(organizationId, principal.id(), createSessionRequest.title());
+        createSessionService.createSession(
+            organizationId,
+            principal.id(),
+            createSessionRequest.title(),
+            createSessionRequest.startAt()
+        );
 
         return ResponseEntity
             .status(HttpStatus.CREATED)

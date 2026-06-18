@@ -4,6 +4,8 @@ import io.github.mongsil3344.qnow.session.application.CreateSessionService;
 import io.github.mongsil3344.qnow.session.application.JoinSessionService;
 import io.github.mongsil3344.qnow.session.infrastructure.web.dto.CreateSessionRequest;
 import io.github.mongsil3344.qnow.user.api.UserPrincipal;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "발표 세션", description = "발표 세션 생성과 참여 API")
 @AllArgsConstructor
 @RequestMapping("/organizations")
 @RestController
@@ -24,7 +27,7 @@ public class SessionController {
     private final CreateSessionService createSessionService;
     private final JoinSessionService joinSessionService;
 
-    // 세션 생성 API
+    @Operation(summary = "세션 생성 API")
     @PostMapping("/{organizationId}/sessions")
     public ResponseEntity<Void> createSession(
         @AuthenticationPrincipal UserPrincipal principal,
@@ -43,7 +46,7 @@ public class SessionController {
             .build();
     }
 
-    // 세션 참여 API
+    @Operation(summary = "세션 참여 API")
     @PostMapping("/{organizationId}/sessions/{sessionId}/participants")
     public ResponseEntity<Void> joinSession(
         @AuthenticationPrincipal UserPrincipal principal,

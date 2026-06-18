@@ -37,7 +37,13 @@ public class SecurityConfig {
                 .securityContext(securityContext -> securityContext.securityContextRepository(securityContextRepository))
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/signup", "/login").permitAll()
+                        .requestMatchers(
+                                "/signup",
+                                "/login",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling

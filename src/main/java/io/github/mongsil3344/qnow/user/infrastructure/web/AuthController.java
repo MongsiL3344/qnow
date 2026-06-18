@@ -1,6 +1,8 @@
 package io.github.mongsil3344.qnow.user.infrastructure.web;
 
 import io.github.mongsil3344.qnow.user.infrastructure.web.dto.LoginRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "계정", description = "회원가입, 로그인, 로그아웃, 내 계정 API")
 @AllArgsConstructor
 @RestController
 public class AuthController {
@@ -24,6 +27,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
 
+    @Operation(summary = "로그인 API")
     @PostMapping("/login")
     public ResponseEntity<Void> login(
         @Valid @RequestBody LoginRequest loginRequest,
@@ -42,6 +46,7 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "로그아웃 API")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         SecurityContextHolder.clearContext();

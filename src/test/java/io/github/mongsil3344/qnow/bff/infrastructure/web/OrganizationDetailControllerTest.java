@@ -1,4 +1,4 @@
-package io.github.mongsil3344.qnow.organizationdetail.infrastructure.web;
+package io.github.mongsil3344.qnow.bff.infrastructure.web;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

@@ -1,7 +1,7 @@
-package io.github.mongsil3344.qnow.organizationdetail.infrastructure.web;
+package io.github.mongsil3344.qnow.bff.infrastructure.web;
 
-import io.github.mongsil3344.qnow.organizationdetail.application.GetOrganizationDetailService;
-import io.github.mongsil3344.qnow.organizationdetail.infrastructure.web.dto.OrganizationDetailResponse;
+import io.github.mongsil3344.qnow.bff.application.GetOrganizationDetailService;
+import io.github.mongsil3344.qnow.bff.infrastructure.web.dto.OrganizationDetailResponse;
 import io.github.mongsil3344.qnow.user.api.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

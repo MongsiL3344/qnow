@@ -1,4 +1,4 @@
-package io.github.mongsil3344.qnow.organizationdetail.application.dto;
+package io.github.mongsil3344.qnow.bff.application.dto;
 
 import java.time.Instant;
 import java.util.List;

@@ -1,6 +1,6 @@
-package io.github.mongsil3344.qnow.organizationdetail.infrastructure.web.dto;
+package io.github.mongsil3344.qnow.bff.infrastructure.web.dto;
 
-import io.github.mongsil3344.qnow.organizationdetail.application.dto.OrganizationDetailResult;
+import io.github.mongsil3344.qnow.bff.application.dto.OrganizationDetailResult;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

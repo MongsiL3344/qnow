@@ -1,8 +1,8 @@
-package io.github.mongsil3344.qnow.organizationdetail.application;
+package io.github.mongsil3344.qnow.bff.application;
 
 import io.github.mongsil3344.qnow.organization.api.OrganizationInfo;
 import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
-import io.github.mongsil3344.qnow.organizationdetail.application.dto.OrganizationDetailResult;
+import io.github.mongsil3344.qnow.bff.application.dto.OrganizationDetailResult;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.session.api.SessionSummary;
 import io.github.mongsil3344.qnow.user.api.UserQueryApi;

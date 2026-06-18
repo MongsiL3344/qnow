@@ -1,5 +1,6 @@
 package io.github.mongsil3344.qnow.organization.infrastructure.web;
 
+import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -84,6 +85,121 @@ class OrganizationListControllerTest {
             .andExpect(jsonPath("$[0].detail").value(organization.getDetail()))
             .andExpect(jsonPath("$[0].memberCount").value(2))
             .andExpect(jsonPath("$[0].activeSessionCount").doesNotExist());
+    }
+
+    @Test
+    void searchOrganizationsReturnsPagedResultsWithPasswordAndJoinedFlags() throws Exception {
+        String password = "password123";
+        User owner = saveUser("search-owner-" + UUID.randomUUID() + "@example.com", "김민준", password);
+        User member = saveUser("search-member-" + UUID.randomUUID() + "@example.com", "이서연", password);
+        MockHttpSession loginSession = login(owner.getEmail(), password);
+        String keyword = "kw" + UUID.randomUUID().toString().substring(0, 8);
+
+        Organization joinedOrganization = organizationRepository.save(Organization.builder()
+            .name(keyword + "-joined")
+            .detail("이미 참여 중인 검색 결과입니다.")
+            .build());
+        Organization passwordOrganization = organizationRepository.save(Organization.builder()
+            .name(keyword + "-locked")
+            .detail("비밀번호가 필요한 검색 결과입니다.")
+            .password(passwordEncoder.encode(password))
+            .build());
+        organizationRepository.save(Organization.builder()
+            .name("other-" + UUID.randomUUID().toString().substring(0, 8))
+            .detail("검색어가 맞지 않는 그룹입니다.")
+            .build());
+
+        userGroupRepository.save(UserGroup.builder()
+            .userId(owner.getId())
+            .organization(joinedOrganization)
+            .role(UserGroupRole.ADMIN)
+            .build());
+        userGroupRepository.save(UserGroup.builder()
+            .userId(member.getId())
+            .organization(joinedOrganization)
+            .role(UserGroupRole.USER)
+            .build());
+        userGroupRepository.save(UserGroup.builder()
+            .userId(member.getId())
+            .organization(passwordOrganization)
+            .role(UserGroupRole.ADMIN)
+            .build());
+
+        mockMvc.perform(get("/organizations/search")
+                .param("keyword", keyword)
+                .param("page", "0")
+                .param("size", "20")
+                .session(loginSession))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(2))
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.size").value(20))
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.totalPages").value(1))
+            .andExpect(jsonPath("$.first").value(true))
+            .andExpect(jsonPath("$.last").value(true))
+            .andExpect(jsonPath(
+                "$.content[?(@.id == '%s')].memberCount".formatted(joinedOrganization.getId())
+            ).value(contains(2)))
+            .andExpect(jsonPath(
+                "$.content[?(@.id == '%s')].requiresPassword".formatted(joinedOrganization.getId())
+            ).value(contains(false)))
+            .andExpect(jsonPath(
+                "$.content[?(@.id == '%s')].joined".formatted(joinedOrganization.getId())
+            ).value(contains(true)))
+            .andExpect(jsonPath(
+                "$.content[?(@.id == '%s')].memberCount".formatted(passwordOrganization.getId())
+            ).value(contains(1)))
+            .andExpect(jsonPath(
+                "$.content[?(@.id == '%s')].requiresPassword".formatted(passwordOrganization.getId())
+            ).value(contains(true)))
+            .andExpect(jsonPath(
+                "$.content[?(@.id == '%s')].joined".formatted(passwordOrganization.getId())
+            ).value(contains(false)));
+    }
+
+    @Test
+    void searchOrganizationsAppliesDatabasePaging() throws Exception {
+        String password = "password123";
+        User owner = saveUser("paging-owner-" + UUID.randomUUID() + "@example.com", "김민준", password);
+        MockHttpSession loginSession = login(owner.getEmail(), password);
+        String keyword = "pg" + UUID.randomUUID().toString().substring(0, 8);
+
+        organizationRepository.save(Organization.builder()
+            .name(keyword + "-first")
+            .build());
+        organizationRepository.save(Organization.builder()
+            .name(keyword + "-second")
+            .build());
+
+        mockMvc.perform(get("/organizations/search")
+                .param("keyword", keyword)
+                .param("page", "0")
+                .param("size", "1")
+                .session(loginSession))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.size").value(1))
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.totalPages").value(2))
+            .andExpect(jsonPath("$.first").value(true))
+            .andExpect(jsonPath("$.last").value(false));
+    }
+
+    @Test
+    void searchOrganizationsRejectsBlankKeyword() throws Exception {
+        String password = "password123";
+        User owner = saveUser("blank-owner-" + UUID.randomUUID() + "@example.com", "김민준", password);
+        MockHttpSession loginSession = login(owner.getEmail(), password);
+
+        mockMvc.perform(get("/organizations/search")
+                .param("keyword", "   ")
+                .param("page", "0")
+                .param("size", "20")
+                .session(loginSession))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("INVALID_ORGANIZATION_SEARCH_KEYWORD"));
     }
 
     private User saveUser(String email, String nickname, String rawPassword) {

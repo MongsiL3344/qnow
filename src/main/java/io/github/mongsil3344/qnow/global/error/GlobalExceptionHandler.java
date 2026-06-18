@@ -3,6 +3,7 @@ package io.github.mongsil3344.qnow.global.error;
 import io.github.mongsil3344.qnow.organization.application.exception.DuplicateNameException;
 import io.github.mongsil3344.qnow.organization.application.exception.AlreadyOrganizationMemberException;
 import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationPasswordException;
+import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationSearchKeywordException;
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationMemberRequiredException;
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationNotFoundException;
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
@@ -65,6 +66,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("INVALID_ORGANIZATION_PASSWORD", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidOrganizationSearchKeywordException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidOrganizationSearchKeyword(
+        InvalidOrganizationSearchKeywordException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("INVALID_ORGANIZATION_SEARCH_KEYWORD", e.getMessage()));
     }
 
     @ExceptionHandler(OrganizationMemberRequiredException.class)

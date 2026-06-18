@@ -4,6 +4,7 @@ import io.github.mongsil3344.qnow.organization.domain.UserGroup;
 import io.github.mongsil3344.qnow.organization.domain.UserGroupRole;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -35,6 +36,18 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, UUID> {
         group by ug.organization.id
         """)
     List<OrganizationMemberCount> countMembersByOrganizationIds(
+        @Param("organizationIds") Collection<UUID> organizationIds
+    );
+
+    @Query("""
+        select ug.organization.id
+        from UserGroup ug
+        where ug.userId = :userId
+            and ug.organization.id in :organizationIds
+            and ug.deletedAt is null
+        """)
+    Set<UUID> findActiveOrganizationIdsByUserIdAndOrganizationIds(
+        @Param("userId") UUID userId,
         @Param("organizationIds") Collection<UUID> organizationIds
     );
 

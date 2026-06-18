@@ -5,12 +5,15 @@ import io.github.mongsil3344.qnow.organization.application.GetOrganizationListSe
 import io.github.mongsil3344.qnow.organization.application.JoinOrganizationService;
 import io.github.mongsil3344.qnow.organization.infrastructure.web.dto.CreateOrganizationRequest;
 import io.github.mongsil3344.qnow.organization.infrastructure.web.dto.JoinOrganizationRequest;
+import io.github.mongsil3344.qnow.organization.infrastructure.web.dto.OrganizationSearchPageResponse;
 import io.github.mongsil3344.qnow.organization.infrastructure.web.dto.OrganizationSummaryResponse;
 import io.github.mongsil3344.qnow.user.api.UserPrincipal;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @AllArgsConstructor
@@ -55,6 +59,29 @@ public class OrganizationController {
             getOrganizationListService.getOrganizations(principal.id()).stream()
                 .map(OrganizationSummaryResponse::from)
                 .toList()
+        );
+    }
+
+    // 조직 검색 API
+    @GetMapping("/organizations/search")
+    public ResponseEntity<OrganizationSearchPageResponse> searchOrganizations(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @RequestParam String keyword,
+        @RequestParam int page,
+        @RequestParam int size
+    ) {
+        return ResponseEntity.ok(
+            OrganizationSearchPageResponse.from(
+                getOrganizationListService.searchOrganizations(
+                    principal.id(),
+                    keyword,
+                    PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(Sort.Direction.DESC, "createdAt")
+                    )
+                )
+            )
         );
     }
 

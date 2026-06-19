@@ -38,6 +38,10 @@ public class AuthController {
             new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password())
         );
 
+        if (request.getSession(false) != null) {
+            request.changeSessionId();
+        }
+
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);

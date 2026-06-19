@@ -63,6 +63,27 @@ class AuthControllerTest {
     }
 
     @Test
+    void loginChangesSessionId() throws Exception {
+        String email = "login-session-id-" + UUID.randomUUID() + "@example.com";
+        String password = "password123";
+        saveUser(email, password);
+        MockHttpSession session = new MockHttpSession();
+        String previousSessionId = session.getId();
+
+        MvcResult result = mockMvc.perform(post("/login")
+                .session(session)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody(email, password)))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        HttpSession authenticatedSession = result.getRequest().getSession(false);
+
+        assertThat(authenticatedSession).isNotNull();
+        assertThat(authenticatedSession.getId()).isNotEqualTo(previousSessionId);
+    }
+
+    @Test
     void loginFailsWithInvalidPassword() throws Exception {
         String email = "login-fail-" + UUID.randomUUID() + "@example.com";
         saveUser(email, "password123");

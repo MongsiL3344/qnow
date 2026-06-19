@@ -27,3 +27,13 @@ management:
     web:
       exposure:
         include: health,info,modulith
+
+aws:
+  region: ${AWS_REGION:ap-northeast-2}
+
+qnow:
+  storage:
+    s3:
+      bucket: ${QNOW_S3_BUCKET:}
+      key-prefix: ${QNOW_S3_KEY_PREFIX:presentations}
+      upload-url-expires-seconds: ${QNOW_S3_UPLOAD_URL_EXPIRES_SECONDS:600}

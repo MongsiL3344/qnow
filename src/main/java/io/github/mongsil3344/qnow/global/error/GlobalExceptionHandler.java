@@ -8,6 +8,7 @@ import io.github.mongsil3344.qnow.organization.application.exception.Organizatio
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationNotFoundException;
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.InvalidUploadObjectKeyException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresentationObjectNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationUploadForbiddenException;
 import io.github.mongsil3344.qnow.session.application.exception.AlreadySessionParticipantException;
@@ -121,6 +122,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("INVALID_UPLOAD_OBJECT_KEY", e.getMessage()));
+    }
+
+    @ExceptionHandler(PresentationObjectNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePresentationObjectNotFound(PresentationObjectNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("PRESENTATION_OBJECT_NOT_FOUND", e.getMessage()));
     }
 
     @ExceptionHandler(PresentationUploadForbiddenException.class)

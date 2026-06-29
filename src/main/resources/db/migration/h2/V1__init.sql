@@ -76,13 +76,15 @@ CREATE TABLE participants
 
 CREATE TABLE presentations
 (
-  id                 UUID                     NOT NULL,
-  session_id         UUID                     NOT NULL,
-  presenter_id       UUID                     NOT NULL,
-  presentation_order INT                      NULL,
-  title              VARCHAR(255)             NOT NULL,
-  created_at         TIMESTAMP WITH TIME ZONE NOT NULL,
-  deleted_at         TIMESTAMP WITH TIME ZONE NULL,
+  id            UUID                     NOT NULL,
+  session_id    UUID                     NOT NULL,
+  presenter_id  UUID                     NOT NULL,
+  title         VARCHAR(255)             NOT NULL,
+  content_type  VARCHAR(100)             NOT NULL DEFAULT 'application/pdf',
+  s3_key        VARCHAR(1024)            NOT NULL,
+  upload_status VARCHAR(20)              NOT NULL DEFAULT 'PENDING',
+  created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at    TIMESTAMP WITH TIME ZONE NULL,
   PRIMARY KEY (id)
 );
 
@@ -107,8 +109,11 @@ ALTER TABLE participants
     UNIQUE (session_id, id);
 
 ALTER TABLE presentations
-  ADD CONSTRAINT uq_presentations_session_order
-    UNIQUE (session_id, presentation_order);
+  ADD CONSTRAINT uq_presentations_s3_key
+    UNIQUE (s3_key);
+
+CREATE INDEX idx_sessions_active_organization_created_at
+  ON sessions (organization_id, created_at DESC);
 
 ALTER TABLE user_groups
   ADD CONSTRAINT FK_users_TO_user_groups
@@ -160,8 +165,8 @@ ALTER TABLE participants
     ON UPDATE NO ACTION;
 
 ALTER TABLE presentations
-  ADD CONSTRAINT FK_presentations_TO_participants
-    FOREIGN KEY (session_id, presenter_id)
-    REFERENCES participants (session_id, id)
+  ADD CONSTRAINT FK_users_TO_presentations_presenter
+    FOREIGN KEY (presenter_id)
+    REFERENCES users (id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION;

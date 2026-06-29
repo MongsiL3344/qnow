@@ -34,6 +34,5 @@ aws:
 qnow:
   storage:
     s3:
-      bucket: ${QNOW_S3_BUCKET:}
-      key-prefix: ${QNOW_S3_KEY_PREFIX:presentations}
-      upload-url-expires-seconds: ${QNOW_S3_UPLOAD_URL_EXPIRES_SECONDS:600}
+      bucket: ${S3_BUCKET:}
+      upload-url-expires-seconds: ${S3_UPLOAD_URL_EXPIRES_SECONDS:600}

@@ -7,6 +7,9 @@ import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrga
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationMemberRequiredException;
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationNotFoundException;
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
+import io.github.mongsil3344.qnow.presentation.application.exception.InvalidUploadObjectKeyException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresentationUploadForbiddenException;
 import io.github.mongsil3344.qnow.session.application.exception.AlreadySessionParticipantException;
 import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
 import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdminRequiredException;
@@ -111,6 +114,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse("ALREADY_SESSION_PARTICIPANT", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidUploadObjectKeyException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidUploadObjectKey(InvalidUploadObjectKeyException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("INVALID_UPLOAD_OBJECT_KEY", e.getMessage()));
+    }
+
+    @ExceptionHandler(PresentationUploadForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handlePresentationUploadForbidden(PresentationUploadForbiddenException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("PRESENTATION_UPLOAD_FORBIDDEN", e.getMessage()));
+    }
+
+    @ExceptionHandler(PresentationSessionNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePresentationSessionNotFound(PresentationSessionNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));
     }
 
     @ExceptionHandler(AuthenticationException.class)

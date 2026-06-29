@@ -119,22 +119,26 @@ COMMENT ON COLUMN participants.deleted_at IS '세션 참여 삭제 시각';
 
 CREATE TABLE presentations
 (
-  id                 UUID         NOT NULL,
-  session_id         UUID         NOT NULL,
-  presenter_id       UUID         NOT NULL,
-  presentation_order INT          NULL,
-  title              VARCHAR(255) NOT NULL,
-  created_at         TIMESTAMPTZ  NOT NULL,
-  deleted_at         TIMESTAMPTZ  NULL,
+  id            UUID         NOT NULL,
+  session_id    UUID         NOT NULL,
+  presenter_id  UUID         NOT NULL,
+  title         VARCHAR(255) NOT NULL,
+  content_type  VARCHAR(100) NOT NULL DEFAULT 'application/pdf',
+  s3_key        VARCHAR(1024) NOT NULL,
+  upload_status VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+  created_at    TIMESTAMPTZ  NOT NULL,
+  deleted_at    TIMESTAMPTZ  NULL,
   PRIMARY KEY (id)
 );
 
 COMMENT ON TABLE presentations IS '세션에 속한 발표 테이블';
 COMMENT ON COLUMN presentations.id IS 'PK';
 COMMENT ON COLUMN presentations.session_id IS '세션 PK';
-COMMENT ON COLUMN presentations.presenter_id IS '발표자 PK';
-COMMENT ON COLUMN presentations.presentation_order IS '발표 순서';
+COMMENT ON COLUMN presentations.presenter_id IS '발표자 유저 PK';
 COMMENT ON COLUMN presentations.title IS '발표 제목';
+COMMENT ON COLUMN presentations.content_type IS '업로드 파일 Content-Type';
+COMMENT ON COLUMN presentations.s3_key IS 'S3 object key';
+COMMENT ON COLUMN presentations.upload_status IS '업로드 상태 (PENDING | UPLOADED | FAILED)';
 COMMENT ON COLUMN presentations.created_at IS '발표 생성 시각';
 COMMENT ON COLUMN presentations.deleted_at IS '발표 삭제 시각';
 
@@ -159,8 +163,12 @@ ALTER TABLE participants
   ADD CONSTRAINT uq_participants_session_id
     UNIQUE (session_id, id);
 
-CREATE UNIQUE INDEX uq_presentations_active_session_order
-  ON presentations (session_id, presentation_order)
+ALTER TABLE presentations
+  ADD CONSTRAINT uq_presentations_s3_key
+    UNIQUE (s3_key);
+
+CREATE INDEX idx_sessions_active_organization_created_at
+  ON sessions (organization_id, created_at DESC)
   WHERE deleted_at IS NULL;
 
 -- 외래키 연결
@@ -214,8 +222,8 @@ ALTER TABLE participants
     ON UPDATE NO ACTION;
 
 ALTER TABLE presentations
-  ADD CONSTRAINT FK_presentations_TO_participants
-    FOREIGN KEY (session_id, presenter_id)
-    REFERENCES participants (session_id, id)
+  ADD CONSTRAINT FK_users_TO_presentations_presenter
+    FOREIGN KEY (presenter_id)
+    REFERENCES users (id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION;

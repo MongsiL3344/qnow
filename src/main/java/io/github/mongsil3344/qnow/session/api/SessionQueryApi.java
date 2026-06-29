@@ -6,4 +6,6 @@ import java.util.UUID;
 public interface SessionQueryApi {
 
     List<SessionSummary> findSessionSummariesByOrganizationId(UUID organizationId);
+
+    boolean existsSessionInOrganization(UUID sessionId, UUID organizationId);
 }

@@ -45,6 +45,12 @@ public class SessionQueryApiImpl implements SessionQueryApi {
             .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsSessionInOrganization(UUID sessionId, UUID organizationId) {
+        return sessionRepository.existsByIdAndOrganizationIdAndDeletedAtIsNull(sessionId, organizationId);
+    }
+
     private Map<UUID, Long> getParticipantCounts(List<Session> sessions) {
         List<UUID> sessionIds = sessions.stream()
             .map(Session::getId)

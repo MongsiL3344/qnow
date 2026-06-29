@@ -10,5 +10,7 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
 
     Optional<Session> findByIdAndOrganizationIdAndDeletedAtIsNull(UUID id, UUID organizationId);
 
+    boolean existsByIdAndOrganizationIdAndDeletedAtIsNull(UUID id, UUID organizationId);
+
     List<Session> findAllByOrganizationIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID organizationId);
 }

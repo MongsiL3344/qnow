@@ -1,5 +1,6 @@
 package io.github.mongsil3344.qnow.global.error;
 
+import io.github.mongsil3344.qnow.bff.application.exception.SessionPresentationNotFoundException;
 import io.github.mongsil3344.qnow.organization.application.exception.DuplicateNameException;
 import io.github.mongsil3344.qnow.organization.application.exception.AlreadyOrganizationMemberException;
 import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationPasswordException;
@@ -140,6 +141,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PresentationSessionNotFoundException.class)
     public ResponseEntity<ErrorResponse> handlePresentationSessionNotFound(PresentationSessionNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(SessionPresentationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleSessionPresentationNotFound(SessionPresentationNotFoundException e) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));

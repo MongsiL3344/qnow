@@ -17,13 +17,15 @@ public record SessionPresentationListResponse(
 
     public record PresentationResponse(
         String title,
-        String presenter
+        String presenter,
+        String thumbnailUrl
     ) {
 
         private static PresentationResponse from(SessionPresentationListResult.PresentationResult result) {
             return new PresentationResponse(
                 result.title(),
-                result.presenter()
+                result.presenter(),
+                result.thumbnailUrl()
             );
         }
     }

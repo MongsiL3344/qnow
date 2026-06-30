@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record SessionPresentationSummary(
     String title,
-    UUID presenterId
+    UUID presenterId,
+    String thumbnailUrl
 ) {
 }

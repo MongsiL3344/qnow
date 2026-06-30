@@ -8,7 +8,8 @@ public record SessionPresentationListResult(
 
     public record PresentationResult(
         String title,
-        String presenter
+        String presenter,
+        String thumbnailUrl
     ) {
     }
 }

@@ -41,7 +41,20 @@ public class CompleteUploadService {
         Presentation presentation = presentationRepository.findByS3KeyAndSessionIdAndDeletedAtIsNull(objectKey, sessionId)
                 .orElseThrow(InvalidUploadObjectKeyException::new);
         verifyObjectExists(presentation.getS3Key());
+        verifyThumbnailIfPresent(presentation);
         presentation.setStatusUploaded();
+    }
+
+    private void verifyThumbnailIfPresent(Presentation presentation) {
+        if (!StringUtils.hasText(presentation.getThumbnailS3Key())) {
+            return;
+        }
+
+        try {
+            verifyObjectExists(presentation.getThumbnailS3Key());
+        } catch (RuntimeException e) {
+            presentation.clearThumbnailS3Key();
+        }
     }
 
     private String objectKeyPrefix(UUID organizationId, UUID sessionId) {

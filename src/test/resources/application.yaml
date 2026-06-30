@@ -18,3 +18,8 @@ spring:
 
 aws:
   region: ${AWS_REGION:ap-northeast-2}
+
+qnow:
+  storage:
+    s3:
+      bucket: qnow-test-bucket

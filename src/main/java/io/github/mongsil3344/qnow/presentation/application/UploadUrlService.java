@@ -23,6 +23,11 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 @Service
 public class UploadUrlService {
 
+    private static final String ORIGINAL_FILE_NAME = "original.pdf";
+    private static final String ORIGINAL_CONTENT_TYPE = "application/pdf";
+    private static final String THUMBNAIL_FILE_NAME = "thumbnail.webp";
+    private static final String THUMBNAIL_CONTENT_TYPE = "image/webp";
+
     private final S3Presigner s3Presigner;
     private final PresentationRepository presentationRepository;
     private final OrganizationQueryApi organizationQueryApi;
@@ -60,13 +65,31 @@ public class UploadUrlService {
                 .title(title)
                 .build();
 
-        String objectKey = createObjectKey(organizationId, sessionId, presentation.getId());
+        String objectPrefix = createObjectPrefix(organizationId, sessionId, presentation.getId());
+        String objectKey = "%s/%s".formatted(objectPrefix, ORIGINAL_FILE_NAME);
+        String thumbnailObjectKey = "%s/%s".formatted(objectPrefix, THUMBNAIL_FILE_NAME);
         presentation.assignS3Key(objectKey);
+        presentation.assignThumbnailS3Key(thumbnailObjectKey);
         presentationRepository.save(presentation);
 
+        URL uploadUrl = createPresignedPutUrl(objectKey, ORIGINAL_CONTENT_TYPE);
+        URL thumbnailUploadUrl = createPresignedPutUrl(thumbnailObjectKey, THUMBNAIL_CONTENT_TYPE);
+
+        return new UploadUrlResult(
+                presentation.getId(),
+                uploadUrl.toString(),
+                presentation.getS3Key(),
+                thumbnailUploadUrl.toString(),
+                presentation.getThumbnailS3Key(),
+                Instant.now().plus(uploadUrlExpires)
+        );
+    }
+
+    private URL createPresignedPutUrl(String objectKey, String contentType) {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(objectKey)
+                .contentType(contentType)
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
@@ -75,14 +98,7 @@ public class UploadUrlService {
                 .build();
 
         PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
-        URL uploadUrl = presignedRequest.url();
-
-        return new UploadUrlResult(
-                presentation.getId(),
-                uploadUrl.toString(),
-                objectKey,
-                Instant.now().plus(uploadUrlExpires)
-        );
+        return presignedRequest.url();
     }
 
     /* 업로드 권한 확인 메서드 */
@@ -100,8 +116,8 @@ public class UploadUrlService {
         }
     }
 
-    /* S3 객체 Key 생성 메서드 */
-    private String createObjectKey(UUID organizationId, UUID sessionId, UUID presentationId) {
+    /* S3 객체 Key prefix 생성 메서드 */
+    private String createObjectPrefix(UUID organizationId, UUID sessionId, UUID presentationId) {
         return "presentations/%s/%s/%s".formatted(organizationId, sessionId, presentationId);
     }
 }

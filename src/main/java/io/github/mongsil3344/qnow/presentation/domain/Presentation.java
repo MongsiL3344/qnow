@@ -44,6 +44,9 @@ public class Presentation implements Persistable<UUID> {
     @Column(name = "s3_key", nullable = false, unique = true, length = 1024)
     private String s3Key;
 
+    @Column(name = "thumbnail_s3_key", unique = true, length = 1024)
+    private String thumbnailS3Key;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "upload_status", nullable = false, length = 20)
     private UploadStatus uploadStatus;
@@ -73,6 +76,14 @@ public class Presentation implements Persistable<UUID> {
 
     public void assignS3Key(String s3Key) {
         this.s3Key = s3Key;
+    }
+
+    public void assignThumbnailS3Key(String thumbnailS3Key) {
+        this.thumbnailS3Key = thumbnailS3Key;
+    }
+
+    public void clearThumbnailS3Key() {
+        this.thumbnailS3Key = null;
     }
 
     public void setStatusUploaded() {

@@ -7,5 +7,7 @@ public record UploadUrlResult(
         UUID presentationId,
         String uploadUrl,
         String objectKey,
+        String thumbnailUploadUrl,
+        String thumbnailObjectKey,
         Instant expiresAt
 ) {}

@@ -36,3 +36,4 @@ qnow:
     s3:
       bucket: ${S3_BUCKET:}
       upload-url-expires-seconds: ${S3_UPLOAD_URL_EXPIRES_SECONDS:600}
+      thumbnail-url-expires-seconds: ${S3_THUMBNAIL_URL_EXPIRES_SECONDS:600}

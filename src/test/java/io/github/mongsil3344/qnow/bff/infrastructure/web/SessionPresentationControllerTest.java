@@ -1,5 +1,6 @@
 package io.github.mongsil3344.qnow.bff.infrastructure.web;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -96,7 +97,51 @@ class SessionPresentationControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.presentations[0].title").value("Qnow 발표 자료"))
             .andExpect(jsonPath("$.presentations[0].presenter").value("김민준"))
+            .andExpect(jsonPath("$.presentations[0].thumbnailUrl").value(nullValue()))
             .andExpect(jsonPath("$.presentations[1]").doesNotExist());
+    }
+
+    @Test
+    void getSessionPresentationsReturnsThumbnailUrlWhenThumbnailKeyExists() throws Exception {
+        String password = "password123";
+        User presenter = saveUser("thumbnail-presenter-" + UUID.randomUUID() + "@example.com", "김민준", password);
+        User audience = saveUser("thumbnail-audience-" + UUID.randomUUID() + "@example.com", "이서연", password);
+        MockHttpSession loginSession = login(audience.getEmail(), password);
+
+        Organization organization = saveOrganization();
+        userGroupRepository.save(UserGroup.builder()
+            .userId(presenter.getId())
+            .organization(organization)
+            .role(UserGroupRole.ADMIN)
+            .build());
+        userGroupRepository.save(UserGroup.builder()
+            .userId(audience.getId())
+            .organization(organization)
+            .role(UserGroupRole.USER)
+            .build());
+
+        Session session = sessionRepository.save(Session.builder()
+            .organizationId(organization.getId())
+            .creatorId(presenter.getId())
+            .title("Spring 트랜잭션 전파")
+            .startAt(Instant.parse("2026-06-17T10:00:00Z"))
+            .build());
+        saveUploadedPresentationWithThumbnail(organization.getId(), session.getId(), presenter.getId(), "Qnow 발표 자료");
+
+        System.setProperty("aws.accessKeyId", "test-access-key");
+        System.setProperty("aws.secretAccessKey", "test-secret-key");
+        try {
+            mockMvc.perform(get("/organizations/{organizationId}/sessions/{sessionId}/presentations",
+                    organization.getId(),
+                    session.getId())
+                    .session(loginSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.presentations[0].title").value("Qnow 발표 자료"))
+                .andExpect(jsonPath("$.presentations[0].thumbnailUrl").isNotEmpty());
+        } finally {
+            System.clearProperty("aws.accessKeyId");
+            System.clearProperty("aws.secretAccessKey");
+        }
     }
 
     @Test
@@ -158,6 +203,21 @@ class SessionPresentationControllerTest {
         return presentationRepository.save(presentation);
     }
 
+    private Presentation saveUploadedPresentationWithThumbnail(
+        UUID organizationId,
+        UUID sessionId,
+        UUID presenterId,
+        String title
+    ) {
+        Presentation presentation = createPresentation(organizationId, sessionId, presenterId, title);
+        presentation.assignThumbnailS3Key("%s/thumbnail.webp".formatted(
+            presentation.getS3Key().replace("/original.pdf", "")
+        ));
+        presentation.setStatusUploaded();
+
+        return presentationRepository.save(presentation);
+    }
+
     private Presentation savePendingPresentation(UUID organizationId, UUID sessionId, UUID presenterId, String title) {
         return presentationRepository.save(createPresentation(organizationId, sessionId, presenterId, title));
     }
@@ -168,7 +228,7 @@ class SessionPresentationControllerTest {
             .presenterId(presenterId)
             .title(title)
             .build();
-        presentation.assignS3Key("presentations/%s/%s/%s".formatted(
+        presentation.assignS3Key("presentations/%s/%s/%s/original.pdf".formatted(
             organizationId,
             sessionId,
             presentation.getId()

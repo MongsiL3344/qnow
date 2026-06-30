@@ -8,6 +8,8 @@ public record UploadUrlResponse(
         UUID presentationId,
         String uploadUrl,
         String objectKey,
+        String thumbnailUploadUrl,
+        String thumbnailObjectKey,
         Instant expiresAt
 ) {
 
@@ -16,6 +18,8 @@ public record UploadUrlResponse(
                 result.presentationId(),
                 result.uploadUrl(),
                 result.objectKey(),
+                result.thumbnailUploadUrl(),
+                result.thumbnailObjectKey(),
                 result.expiresAt()
         );
     }

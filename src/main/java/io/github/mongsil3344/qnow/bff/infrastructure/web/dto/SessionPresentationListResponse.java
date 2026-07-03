@@ -2,6 +2,7 @@ package io.github.mongsil3344.qnow.bff.infrastructure.web.dto;
 
 import io.github.mongsil3344.qnow.bff.application.dto.SessionPresentationListResult;
 import java.util.List;
+import java.util.UUID;
 
 public record SessionPresentationListResponse(
     List<PresentationResponse> presentations
@@ -16,6 +17,7 @@ public record SessionPresentationListResponse(
     }
 
     public record PresentationResponse(
+        UUID presentationId,
         String title,
         String presenter,
         String thumbnailUrl
@@ -23,6 +25,7 @@ public record SessionPresentationListResponse(
 
         private static PresentationResponse from(SessionPresentationListResult.PresentationResult result) {
             return new PresentationResponse(
+                result.presentationId(),
                 result.title(),
                 result.presenter(),
                 result.thumbnailUrl()

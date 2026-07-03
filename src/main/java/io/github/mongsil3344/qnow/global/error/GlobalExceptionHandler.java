@@ -9,6 +9,8 @@ import io.github.mongsil3344.qnow.organization.application.exception.Organizatio
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationNotFoundException;
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.InvalidUploadObjectKeyException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresentationAccessForbiddenException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresentationNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationObjectNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationUploadForbiddenException;
@@ -137,6 +139,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("PRESENTATION_UPLOAD_FORBIDDEN", e.getMessage()));
+    }
+
+    @ExceptionHandler(PresentationAccessForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handlePresentationAccessForbidden(PresentationAccessForbiddenException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("PRESENTATION_ACCESS_FORBIDDEN", e.getMessage()));
+    }
+
+    @ExceptionHandler(PresentationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePresentationNotFound(PresentationNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("PRESENTATION_NOT_FOUND", e.getMessage()));
     }
 
     @ExceptionHandler(PresentationSessionNotFoundException.class)

@@ -48,6 +48,7 @@ public class GetSessionPresentationListService {
         return new SessionPresentationListResult(
             presentations.stream()
                 .map(presentation -> new SessionPresentationListResult.PresentationResult(
+                    presentation.presentationId(),
                     presentation.title(),
                     presenterNames.getOrDefault(presentation.presenterId(), UNKNOWN_USER_NAME),
                     presentation.thumbnailUrl()

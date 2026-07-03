@@ -44,6 +44,7 @@ public class PresentationQueryApiImpl implements PresentationQueryApi {
             .findAllBySessionIdAndUploadStatusAndDeletedAtIsNullOrderByCreatedAtDesc(sessionId, UploadStatus.UPLOADED)
             .stream()
             .map(presentation -> new SessionPresentationSummary(
+                presentation.getId(),
                 presentation.getTitle(),
                 presentation.getPresenterId(),
                 createThumbnailUrl(presentation)

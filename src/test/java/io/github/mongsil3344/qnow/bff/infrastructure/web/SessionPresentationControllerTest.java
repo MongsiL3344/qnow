@@ -95,6 +95,7 @@ class SessionPresentationControllerTest {
                 session.getId())
                 .session(loginSession))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$.presentations[0].presentationId").isNotEmpty())
             .andExpect(jsonPath("$.presentations[0].title").value("Qnow 발표 자료"))
             .andExpect(jsonPath("$.presentations[0].presenter").value("김민준"))
             .andExpect(jsonPath("$.presentations[0].thumbnailUrl").value(nullValue()))

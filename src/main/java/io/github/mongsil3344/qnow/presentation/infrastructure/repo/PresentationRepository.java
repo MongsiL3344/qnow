@@ -11,6 +11,12 @@ public interface PresentationRepository extends JpaRepository<Presentation, UUID
 
     Optional<Presentation> findByS3KeyAndSessionIdAndDeletedAtIsNull(String s3Key, UUID sessionId);
 
+    Optional<Presentation> findByIdAndSessionIdAndUploadStatusAndDeletedAtIsNull(
+        UUID id,
+        UUID sessionId,
+        UploadStatus uploadStatus
+    );
+
     List<Presentation> findAllBySessionIdAndUploadStatusAndDeletedAtIsNullOrderByCreatedAtDesc(
         UUID sessionId,
         UploadStatus uploadStatus

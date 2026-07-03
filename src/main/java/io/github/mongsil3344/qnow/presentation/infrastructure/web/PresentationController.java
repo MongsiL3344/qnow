@@ -47,7 +47,8 @@ public class PresentationController {
                 organizationId,
                 sessionId,
                 principal.id(),
-                request.title()
+                request.title(),
+                request.pageCount()
         );
 
         return ResponseEntity.ok(UploadUrlResponse.from(result));

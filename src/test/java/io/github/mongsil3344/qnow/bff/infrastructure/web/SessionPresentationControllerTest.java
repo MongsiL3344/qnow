@@ -228,6 +228,7 @@ class SessionPresentationControllerTest {
             .sessionId(sessionId)
             .presenterId(presenterId)
             .title(title)
+            .pageCount(12)
             .build();
         presentation.assignS3Key("presentations/%s/%s/%s/original.pdf".formatted(
             organizationId,

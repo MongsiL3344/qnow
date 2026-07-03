@@ -89,6 +89,7 @@ class PresentationQueryApiImplTest {
                 .sessionId(sessionId)
                 .presenterId(UUID.randomUUID())
                 .title("Qnow 발표 자료")
+                .pageCount(12)
                 .build();
         presentation.assignS3Key("presentations/%s/%s/%s/original.pdf".formatted(
                 organizationId,

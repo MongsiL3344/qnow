@@ -109,6 +109,7 @@ class CompleteUploadServiceTest {
                 .sessionId(sessionId)
                 .presenterId(UUID.randomUUID())
                 .title("Qnow 발표 자료")
+                .pageCount(12)
                 .build();
         String objectPrefix = "presentations/%s/%s/%s".formatted(
                 organizationId,

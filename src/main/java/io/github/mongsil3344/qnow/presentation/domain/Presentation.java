@@ -47,6 +47,9 @@ public class Presentation implements Persistable<UUID> {
     @Column(name = "thumbnail_s3_key", unique = true, length = 1024)
     private String thumbnailS3Key;
 
+    @Column(name = "page_count", nullable = false)
+    private int pageCount;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "upload_status", nullable = false, length = 20)
     private UploadStatus uploadStatus;
@@ -64,12 +67,18 @@ public class Presentation implements Persistable<UUID> {
     private Presentation(
             UUID sessionId,
             UUID presenterId,
-            String title
+            String title,
+            int pageCount
     ) {
+        if (pageCount < 1) {
+            throw new IllegalArgumentException("pageCount must be positive");
+        }
+
         this.id = UUID.randomUUID();
         this.sessionId = sessionId;
         this.presenterId = presenterId;
         this.title = title;
+        this.pageCount = pageCount;
         this.contentType = DEFAULT_CONTENT_TYPE;
         this.uploadStatus = UploadStatus.PENDING;
     }

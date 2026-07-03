@@ -74,7 +74,8 @@ class UploadUrlServiceTest {
                 organizationId,
                 sessionId,
                 userId,
-                "Qnow 발표 자료"
+                "Qnow 발표 자료",
+                42
         );
 
         assertThat(result.objectKey()).endsWith("/original.pdf");
@@ -87,5 +88,6 @@ class UploadUrlServiceTest {
         Presentation presentation = presentationCaptor.getValue();
         assertThat(presentation.getS3Key()).isEqualTo(result.objectKey());
         assertThat(presentation.getThumbnailS3Key()).isEqualTo(result.thumbnailObjectKey());
+        assertThat(presentation.getPageCount()).isEqualTo(42);
     }
 }

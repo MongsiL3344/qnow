@@ -52,7 +52,13 @@ public class UploadUrlService {
     }
 
     @Transactional
-    public UploadUrlResult createUploadUrl(UUID organizationId, UUID sessionId, UUID userId, String title) {
+    public UploadUrlResult createUploadUrl(
+            UUID organizationId,
+            UUID sessionId,
+            UUID userId,
+            String title,
+            int pageCount
+    ) {
         if (!StringUtils.hasText(bucket)) {
             throw new IllegalStateException("S3 bucket is not configured");
         }
@@ -63,6 +69,7 @@ public class UploadUrlService {
                 .sessionId(sessionId)
                 .presenterId(userId)
                 .title(title)
+                .pageCount(pageCount)
                 .build();
 
         String objectPrefix = createObjectPrefix(organizationId, sessionId, presentation.getId());

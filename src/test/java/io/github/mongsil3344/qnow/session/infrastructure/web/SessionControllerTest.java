@@ -9,6 +9,7 @@ import io.github.mongsil3344.qnow.organization.domain.UserGroup;
 import io.github.mongsil3344.qnow.organization.domain.UserGroupRole;
 import io.github.mongsil3344.qnow.organization.infrastructure.repo.OrganizationRepository;
 import io.github.mongsil3344.qnow.organization.infrastructure.repo.UserGroupRepository;
+import io.github.mongsil3344.qnow.session.domain.Participant;
 import io.github.mongsil3344.qnow.session.domain.Session;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.ParticipantRepository;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
@@ -95,6 +96,50 @@ class SessionControllerTest {
             creator.getId(),
             createdSession.getId()
         )).isTrue();
+    }
+
+    @Test
+    void exitSessionSoftDeletesActiveParticipant() throws Exception {
+        String password = "password123";
+        User user = saveUser("session-exit-" + UUID.randomUUID() + "@example.com", password);
+        MockHttpSession loginSession = login(user.getEmail(), password);
+
+        Organization organization = organizationRepository.save(Organization.builder()
+            .name("org-" + UUID.randomUUID().toString().substring(0, 8))
+            .detail("세션 퇴장 테스트 그룹입니다.")
+            .build());
+
+        userGroupRepository.save(UserGroup.builder()
+            .userId(user.getId())
+            .organization(organization)
+            .role(UserGroupRole.USER)
+            .build());
+
+        Session session = sessionRepository.save(Session.builder()
+            .organizationId(organization.getId())
+            .creatorId(user.getId())
+            .title("exit-session-" + UUID.randomUUID())
+            .startAt(Instant.parse("2026-06-17T10:00:00Z"))
+            .build());
+
+        Participant participant = participantRepository.save(Participant.builder()
+            .userId(user.getId())
+            .session(session)
+            .build());
+
+        mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/participants/exit",
+                organization.getId(),
+                session.getId())
+                .session(loginSession))
+            .andExpect(status().isNoContent());
+
+        Participant exitedParticipant = participantRepository.findById(participant.getId()).orElseThrow();
+
+        assertThat(exitedParticipant.getDeletedAt()).isNotNull();
+        assertThat(participantRepository.existsByUserIdAndSessionIdAndDeletedAtIsNull(
+            user.getId(),
+            session.getId()
+        )).isFalse();
     }
 
     private User saveUser(String email, String rawPassword) {

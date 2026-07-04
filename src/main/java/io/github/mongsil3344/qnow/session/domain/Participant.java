@@ -47,6 +47,12 @@ public class Participant {
         this.session = session;
     }
 
+    public void exit() {
+        if (deletedAt == null) {
+            deletedAt = Instant.now();
+        }
+    }
+
     @PrePersist
     void initialize() {
         if (createdAt == null) {

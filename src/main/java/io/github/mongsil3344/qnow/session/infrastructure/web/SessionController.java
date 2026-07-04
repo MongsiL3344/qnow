@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.session.infrastructure.web;
 
 import io.github.mongsil3344.qnow.session.application.CreateSessionService;
+import io.github.mongsil3344.qnow.session.application.ExitSessionService;
 import io.github.mongsil3344.qnow.session.application.JoinSessionService;
 import io.github.mongsil3344.qnow.session.infrastructure.web.dto.CreateSessionRequest;
 import io.github.mongsil3344.qnow.user.api.UserPrincipal;
@@ -26,6 +27,7 @@ public class SessionController {
 
     private final CreateSessionService createSessionService;
     private final JoinSessionService joinSessionService;
+    private final ExitSessionService exitSessionService;
 
     @Operation(summary = "세션 생성 API")
     @PostMapping("/{organizationId}/sessions")
@@ -57,6 +59,20 @@ public class SessionController {
 
         return ResponseEntity
             .status(HttpStatus.CREATED)
+            .build();
+    }
+
+    @Operation(summary = "세션 퇴장 API")
+    @PostMapping("/{organizationId}/sessions/{sessionId}/participants/exit")
+    public ResponseEntity<Void> exitSession(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID organizationId,
+        @PathVariable UUID sessionId
+    ) {
+        exitSessionService.exitSession(organizationId, sessionId, principal.id());
+
+        return ResponseEntity
+            .noContent()
             .build();
     }
 }

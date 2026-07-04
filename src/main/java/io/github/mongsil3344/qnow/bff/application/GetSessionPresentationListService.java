@@ -51,7 +51,8 @@ public class GetSessionPresentationListService {
                     presentation.presentationId(),
                     presentation.title(),
                     presenterNames.getOrDefault(presentation.presenterId(), UNKNOWN_USER_NAME),
-                    presentation.thumbnailUrl()
+                    presentation.thumbnailUrl(),
+                    presentation.presenterId().equals(userId)
                 ))
                 .toList()
         );

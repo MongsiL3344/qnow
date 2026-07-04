@@ -99,6 +99,7 @@ class SessionPresentationControllerTest {
             .andExpect(jsonPath("$.presentations[0].title").value("Qnow 발표 자료"))
             .andExpect(jsonPath("$.presentations[0].presenter").value("김민준"))
             .andExpect(jsonPath("$.presentations[0].thumbnailUrl").value(nullValue()))
+            .andExpect(jsonPath("$.presentations[0].canDelete").value(false))
             .andExpect(jsonPath("$.presentations[1]").doesNotExist());
     }
 

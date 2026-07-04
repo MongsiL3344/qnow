@@ -11,7 +11,8 @@ public record SessionPresentationListResult(
         UUID presentationId,
         String title,
         String presenter,
-        String thumbnailUrl
+        String thumbnailUrl,
+        boolean canDelete
     ) {
     }
 }

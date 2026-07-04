@@ -10,6 +10,7 @@ import io.github.mongsil3344.qnow.organization.application.exception.Organizatio
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.InvalidUploadObjectKeyException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationAccessForbiddenException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresentationDeleteForbiddenException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationObjectNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
@@ -146,6 +147,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("PRESENTATION_ACCESS_FORBIDDEN", e.getMessage()));
+    }
+
+    @ExceptionHandler(PresentationDeleteForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handlePresentationDeleteForbidden(PresentationDeleteForbiddenException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("PRESENTATION_DELETE_FORBIDDEN", e.getMessage()));
     }
 
     @ExceptionHandler(PresentationNotFoundException.class)

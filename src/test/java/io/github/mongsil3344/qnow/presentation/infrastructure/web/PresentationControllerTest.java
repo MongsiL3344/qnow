@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.presentation.infrastructure.web;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -100,6 +101,15 @@ class PresentationControllerTest {
     @Test
     void getPresentationPdfRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/organizations/{organizationId}/sessions/{sessionId}/presentations/{presentationId}/pdf",
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID()))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deletePresentationRequiresAuthentication() throws Exception {
+        mockMvc.perform(delete("/organizations/{organizationId}/sessions/{sessionId}/presentations/{presentationId}",
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 UUID.randomUUID()))

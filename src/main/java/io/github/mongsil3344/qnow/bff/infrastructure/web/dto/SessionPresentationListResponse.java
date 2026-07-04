@@ -20,7 +20,8 @@ public record SessionPresentationListResponse(
         UUID presentationId,
         String title,
         String presenter,
-        String thumbnailUrl
+        String thumbnailUrl,
+        boolean canDelete
     ) {
 
         private static PresentationResponse from(SessionPresentationListResult.PresentationResult result) {
@@ -28,7 +29,8 @@ public record SessionPresentationListResponse(
                 result.presentationId(),
                 result.title(),
                 result.presenter(),
-                result.thumbnailUrl()
+                result.thumbnailUrl(),
+                result.canDelete()
             );
         }
     }

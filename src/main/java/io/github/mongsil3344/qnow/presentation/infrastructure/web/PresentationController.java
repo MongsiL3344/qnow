@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.presentation.infrastructure.web;
 
 import io.github.mongsil3344.qnow.presentation.application.CompleteUploadService;
+import io.github.mongsil3344.qnow.presentation.application.DeletePresentationService;
 import io.github.mongsil3344.qnow.presentation.application.PdfUrlService;
 import io.github.mongsil3344.qnow.presentation.application.UploadUrlService;
 import io.github.mongsil3344.qnow.presentation.application.dto.PdfUrlResult;
@@ -18,6 +19,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +36,7 @@ public class PresentationController {
     private final UploadUrlService uploadUrlService;
     private final CompleteUploadService completeUploadService;
     private final PdfUrlService pdfUrlService;
+    private final DeletePresentationService deletePresentationService;
 
     @Operation(summary = "발표 자료 업로드 URL 발급 API")
     @PostMapping("/upload-url")
@@ -84,5 +87,23 @@ public class PresentationController {
         );
 
         return ResponseEntity.ok(PdfUrlResponse.from(result));
+    }
+
+    @Operation(summary = "발표 자료 삭제 API")
+    @DeleteMapping("/{presentationId}")
+    public ResponseEntity<Void> deletePresentation(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID organizationId,
+            @PathVariable UUID sessionId,
+            @PathVariable UUID presentationId
+    ) {
+        deletePresentationService.deletePresentation(
+                organizationId,
+                sessionId,
+                presentationId,
+                principal.id()
+        );
+
+        return ResponseEntity.noContent().build();
     }
 }

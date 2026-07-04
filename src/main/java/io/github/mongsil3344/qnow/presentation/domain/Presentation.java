@@ -103,6 +103,12 @@ public class Presentation implements Persistable<UUID> {
         this.uploadStatus = UploadStatus.FAILED;
     }
 
+    public void delete() {
+        if (deletedAt == null) {
+            deletedAt = Instant.now();
+        }
+    }
+
     @Override
     public boolean isNew() {
         return newEntity;

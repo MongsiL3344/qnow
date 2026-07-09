@@ -4,10 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.github.mongsil3344.qnow.presentation.api.SessionPresentationSummary;
+import io.github.mongsil3344.qnow.presentation.api.UploadedPresentationInfo;
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.UploadStatus;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,6 +84,42 @@ class PresentationQueryApiImplTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().thumbnailUrl()).isNull();
+    }
+
+    @Test
+    void findUploadedPresentationByIdReturnsPresentationInfo() {
+        UUID organizationId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        Presentation presentation = createPresentation(organizationId, sessionId);
+
+        when(presentationRepository.findByIdAndUploadStatusAndDeletedAtIsNull(
+                presentation.getId(),
+                UploadStatus.UPLOADED
+        )).thenReturn(Optional.of(presentation));
+
+        Optional<UploadedPresentationInfo> result =
+                presentationQueryApi.findUploadedPresentationById(presentation.getId());
+
+        assertThat(result).contains(new UploadedPresentationInfo(
+                presentation.getId(),
+                sessionId,
+                presentation.getPageCount()
+        ));
+    }
+
+    @Test
+    void findUploadedPresentationByIdReturnsEmptyWhenPresentationIsUnavailable() {
+        UUID presentationId = UUID.randomUUID();
+
+        when(presentationRepository.findByIdAndUploadStatusAndDeletedAtIsNull(
+                presentationId,
+                UploadStatus.UPLOADED
+        )).thenReturn(Optional.empty());
+
+        Optional<UploadedPresentationInfo> result =
+                presentationQueryApi.findUploadedPresentationById(presentationId);
+
+        assertThat(result).isEmpty();
     }
 
     private Presentation createPresentation(UUID organizationId, UUID sessionId) {

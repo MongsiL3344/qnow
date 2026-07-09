@@ -15,6 +15,9 @@ import io.github.mongsil3344.qnow.presentation.application.exception.Presentatio
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationObjectNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationUploadForbiddenException;
+import io.github.mongsil3344.qnow.question.application.exception.InvalidQuestionReferenceException;
+import io.github.mongsil3344.qnow.question.application.exception.QuestionPresentationNotFoundException;
+import io.github.mongsil3344.qnow.question.application.exception.SessionParticipantRequiredException;
 import io.github.mongsil3344.qnow.session.application.exception.AlreadySessionParticipantException;
 import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
 import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdminRequiredException;
@@ -175,6 +178,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(QuestionPresentationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleQuestionPresentationNotFound(QuestionPresentationNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("PRESENTATION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(SessionParticipantRequiredException.class)
+    public ResponseEntity<ErrorResponse> handleSessionParticipantRequired(SessionParticipantRequiredException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("SESSION_PARTICIPANT_REQUIRED", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidQuestionReferenceException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidQuestionReference(InvalidQuestionReferenceException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("INVALID_QUESTION_REFERENCE", e.getMessage()));
     }
 
     @ExceptionHandler(AuthenticationException.class)

@@ -2,11 +2,13 @@ package io.github.mongsil3344.qnow.presentation.application;
 
 import io.github.mongsil3344.qnow.presentation.api.PresentationQueryApi;
 import io.github.mongsil3344.qnow.presentation.api.SessionPresentationSummary;
+import io.github.mongsil3344.qnow.presentation.api.UploadedPresentationInfo;
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.UploadStatus;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -50,6 +52,18 @@ public class PresentationQueryApiImpl implements PresentationQueryApi {
                 createThumbnailUrl(presentation)
             ))
             .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UploadedPresentationInfo> findUploadedPresentationById(UUID presentationId) {
+        return presentationRepository
+            .findByIdAndUploadStatusAndDeletedAtIsNull(presentationId, UploadStatus.UPLOADED)
+            .map(presentation -> new UploadedPresentationInfo(
+                presentation.getId(),
+                presentation.getSessionId(),
+                presentation.getPageCount()
+            ));
     }
 
     private String createThumbnailUrl(Presentation presentation) {

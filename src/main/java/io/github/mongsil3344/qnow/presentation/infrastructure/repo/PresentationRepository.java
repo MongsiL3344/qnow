@@ -13,6 +13,8 @@ public interface PresentationRepository extends JpaRepository<Presentation, UUID
 
     Optional<Presentation> findByIdAndSessionIdAndDeletedAtIsNull(UUID id, UUID sessionId);
 
+    Optional<Presentation> findByIdAndUploadStatusAndDeletedAtIsNull(UUID id, UploadStatus uploadStatus);
+
     Optional<Presentation> findByIdAndSessionIdAndUploadStatusAndDeletedAtIsNull(
         UUID id,
         UUID sessionId,

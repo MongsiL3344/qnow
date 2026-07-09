@@ -7,6 +7,7 @@ import io.github.mongsil3344.qnow.session.infrastructure.repo.ParticipantReposit
 import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -49,6 +50,12 @@ public class SessionQueryApiImpl implements SessionQueryApi {
     @Transactional(readOnly = true)
     public boolean existsSessionInOrganization(UUID sessionId, UUID organizationId) {
         return sessionRepository.existsByIdAndOrganizationIdAndDeletedAtIsNull(sessionId, organizationId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UUID> findActiveParticipantId(UUID sessionId, UUID userId) {
+        return participantRepository.findActiveParticipantId(sessionId, userId);
     }
 
     private Map<UUID, Long> getParticipantCounts(List<Session> sessions) {

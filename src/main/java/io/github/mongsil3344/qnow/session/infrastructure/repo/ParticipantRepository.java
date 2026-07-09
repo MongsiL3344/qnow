@@ -16,6 +16,19 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
     Optional<Participant> findByUserIdAndSessionIdAndDeletedAtIsNull(UUID userId, UUID sessionId);
 
     @Query("""
+        select p.id
+        from Participant p
+        where p.session.id = :sessionId
+            and p.userId = :userId
+            and p.deletedAt is null
+            and p.session.deletedAt is null
+        """)
+    Optional<UUID> findActiveParticipantId(
+        @Param("sessionId") UUID sessionId,
+        @Param("userId") UUID userId
+    );
+
+    @Query("""
         select p.session.id as sessionId, count(p.id) as participantCount
         from Participant p
         where p.session.id in :sessionIds

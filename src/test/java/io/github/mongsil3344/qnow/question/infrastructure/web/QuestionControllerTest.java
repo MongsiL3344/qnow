@@ -81,11 +81,34 @@ class QuestionControllerTest {
         assertThat(question.getPresentationId()).isEqualTo(fixture.presentation().getId());
         assertThat(question.getQuestionerId()).isEqualTo(fixture.participant().getId());
         assertThat(question.getContent()).isEqualTo("트랜잭션은 어느 시점에 커밋되나요?");
+        assertThat(question.isAnonymous()).isFalse();
         assertThat(question.getPageStart()).isEqualTo(3);
         assertThat(question.getPageEnd()).isEqualTo(5);
         assertThat(question.getUpvoteCount()).isZero();
         assertThat(question.getSelection()).isNull();
         assertThat(question.getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    void createQuestionPersistsAnonymousFlag() throws Exception {
+        QuestionFixture fixture = createFixture(true, true);
+
+        postQuestion(
+                fixture,
+                fixture.presentation().getId(),
+                """
+                    {
+                      "content": "익명 질문입니다",
+                      "anonymous": true,
+                      "pageStart": 2,
+                      "pageEnd": 2,
+                      "selection": null
+                    }
+                    """
+            )
+            .andExpect(status().isCreated());
+
+        assertThat(findQuestion(fixture.presentation().getId()).isAnonymous()).isTrue();
     }
 
     @Test

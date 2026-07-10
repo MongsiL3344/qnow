@@ -1,6 +1,8 @@
 package io.github.mongsil3344.qnow.global.error;
 
 import io.github.mongsil3344.qnow.bff.application.exception.SessionPresentationNotFoundException;
+import io.github.mongsil3344.qnow.bff.application.exception.InvalidQuestionListQueryException;
+import io.github.mongsil3344.qnow.bff.application.exception.QuestionListPresentationNotFoundException;
 import io.github.mongsil3344.qnow.organization.application.exception.DuplicateNameException;
 import io.github.mongsil3344.qnow.organization.application.exception.AlreadyOrganizationMemberException;
 import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationPasswordException;
@@ -27,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -180,6 +183,22 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));
     }
 
+    @ExceptionHandler(QuestionListPresentationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleQuestionListPresentationNotFound(
+        QuestionListPresentationNotFoundException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(new ErrorResponse("PRESENTATION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidQuestionListQueryException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidQuestionListQuery(InvalidQuestionListQueryException e) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("INVALID_INPUT", e.getMessage()));
+    }
+
     @ExceptionHandler(QuestionPresentationNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleQuestionPresentationNotFound(QuestionPresentationNotFoundException e) {
         return ResponseEntity
@@ -218,6 +237,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("INVALID_INPUT", message));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException e) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("INVALID_INPUT", "입력값이 올바르지 않습니다"));
     }
 
     // 그 외 전역 예외

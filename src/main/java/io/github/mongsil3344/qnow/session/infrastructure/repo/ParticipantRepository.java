@@ -37,9 +37,24 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
         """)
     List<SessionParticipantCount> countParticipantsBySessionIds(@Param("sessionIds") Collection<UUID> sessionIds);
 
+    @Query("""
+        select p.id as participantId, p.userId as userId
+        from Participant p
+        where p.id in :participantIds
+        """)
+    List<ParticipantUserId> findUserIdsByParticipantIds(
+        @Param("participantIds") Collection<UUID> participantIds
+    );
+
     interface SessionParticipantCount {
         UUID getSessionId();
 
         long getParticipantCount();
+    }
+
+    interface ParticipantUserId {
+        UUID getParticipantId();
+
+        UUID getUserId();
     }
 }

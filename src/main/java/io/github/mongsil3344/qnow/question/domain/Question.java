@@ -34,6 +34,9 @@ public class Question {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "is_anonymous", nullable = false)
+    private boolean anonymous;
+
     @Column(name = "page_start", nullable = false)
     private int pageStart;
 
@@ -57,6 +60,7 @@ public class Question {
             UUID presentationId,
             UUID questionerId,
             String content,
+            boolean anonymous,
             int pageStart,
             int pageEnd,
             QuestionSelection selection
@@ -64,6 +68,7 @@ public class Question {
         this.presentationId = presentationId;
         this.questionerId = questionerId;
         this.content = content;
+        this.anonymous = anonymous;
         this.pageStart = pageStart;
         this.pageEnd = pageEnd;
         this.selection = selection;

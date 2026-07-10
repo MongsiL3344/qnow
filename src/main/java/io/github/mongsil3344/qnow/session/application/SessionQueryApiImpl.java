@@ -5,6 +5,7 @@ import io.github.mongsil3344.qnow.session.api.SessionSummary;
 import io.github.mongsil3344.qnow.session.domain.Session;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.ParticipantRepository;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,6 +57,26 @@ public class SessionQueryApiImpl implements SessionQueryApi {
     @Transactional(readOnly = true)
     public Optional<UUID> findActiveParticipantId(UUID sessionId, UUID userId) {
         return participantRepository.findActiveParticipantId(sessionId, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UUID> findOrganizationIdBySessionId(UUID sessionId) {
+        return sessionRepository.findOrganizationIdBySessionId(sessionId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<UUID, UUID> findUserIdsByParticipantIds(Collection<UUID> participantIds) {
+        if (participantIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return participantRepository.findUserIdsByParticipantIds(participantIds).stream()
+            .collect(Collectors.toMap(
+                ParticipantRepository.ParticipantUserId::getParticipantId,
+                ParticipantRepository.ParticipantUserId::getUserId
+            ));
     }
 
     private Map<UUID, Long> getParticipantCounts(List<Session> sessions) {

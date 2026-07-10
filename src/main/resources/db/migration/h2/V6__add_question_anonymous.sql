@@ -1,0 +1,2 @@
+ALTER TABLE questions
+  ADD COLUMN is_anonymous BOOLEAN NOT NULL DEFAULT FALSE;

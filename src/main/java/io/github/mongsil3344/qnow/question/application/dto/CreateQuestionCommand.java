@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public record CreateQuestionCommand(
         String content,
+        boolean anonymous,
         int pageStart,
         int pageEnd,
         Selection selection

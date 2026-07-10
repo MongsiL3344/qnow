@@ -16,6 +16,8 @@ public record CreateQuestionRequest(
         @Size(max = 500, message = "질문 내용은 500자 이하여야 합니다")
         String content,
 
+        Boolean anonymous,
+
         @NotNull(message = "질문 시작 페이지가 필요합니다")
         Integer pageStart,
 
@@ -29,6 +31,7 @@ public record CreateQuestionRequest(
     public CreateQuestionCommand toCommand() {
         return new CreateQuestionCommand(
                 content,
+                Boolean.TRUE.equals(anonymous),
                 pageStart,
                 pageEnd,
                 selection == null ? null : selection.toCommand()

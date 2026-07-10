@@ -49,6 +49,7 @@ public class CreateQuestionService {
                 .presentationId(presentation.presentationId())
                 .questionerId(participantId)
                 .content(command.content().strip())
+                .anonymous(command.anonymous())
                 .pageStart(command.pageStart())
                 .pageEnd(command.pageEnd())
                 .selection(selection)

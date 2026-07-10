@@ -1,7 +1,7 @@
 package io.github.mongsil3344.qnow.bff.infrastructure.web.dto;
 
 import io.github.mongsil3344.qnow.bff.application.dto.QuestionListResult;
-import java.math.BigDecimal;
+import io.github.mongsil3344.qnow.question.api.QuestionSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -32,7 +32,7 @@ public record QuestionListResponse(
         boolean mine,
         int pageStart,
         int pageEnd,
-        SelectionResponse selection,
+        QuestionSummary.Selection selection,
         int upvoteCount,
         Instant createdAt
     ) {
@@ -46,30 +46,9 @@ public record QuestionListResponse(
                 result.mine(),
                 result.pageStart(),
                 result.pageEnd(),
-                SelectionResponse.from(result.selection()),
+                result.selection(),
                 result.upvoteCount(),
                 result.createdAt()
-            );
-        }
-    }
-
-    public record SelectionResponse(
-        BigDecimal leftRatio,
-        BigDecimal topRatio,
-        BigDecimal widthRatio,
-        BigDecimal heightRatio
-    ) {
-
-        private static SelectionResponse from(QuestionListResult.SelectionResult result) {
-            if (result == null) {
-                return null;
-            }
-
-            return new SelectionResponse(
-                result.leftRatio(),
-                result.topRatio(),
-                result.widthRatio(),
-                result.heightRatio()
             );
         }
     }

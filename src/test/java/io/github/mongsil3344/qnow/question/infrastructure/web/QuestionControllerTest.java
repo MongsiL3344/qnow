@@ -112,6 +112,28 @@ class QuestionControllerTest {
     }
 
     @Test
+    void createQuestionTreatsNullAnonymousAsFalse() throws Exception {
+        QuestionFixture fixture = createFixture(true, true);
+
+        postQuestion(
+                fixture,
+                fixture.presentation().getId(),
+                """
+                    {
+                      "content": "익명 여부가 null인 질문입니다",
+                      "anonymous": null,
+                      "pageStart": 2,
+                      "pageEnd": 2,
+                      "selection": null
+                    }
+                    """
+            )
+            .andExpect(status().isCreated());
+
+        assertThat(findQuestion(fixture.presentation().getId()).isAnonymous()).isFalse();
+    }
+
+    @Test
     void createAreaQuestionNormalizesRatiosAndPreservesExactBoundary() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
@@ -142,6 +164,28 @@ class QuestionControllerTest {
             .isEqualByComparingTo(BigDecimal.ONE);
         assertThat(selection.getTopRatio().add(selection.getHeightRatio()))
             .isEqualByComparingTo(BigDecimal.ONE);
+    }
+
+    @Test
+    void createQuestionRejectsEmptySelectionObject() throws Exception {
+        QuestionFixture fixture = createFixture(true, true);
+
+        postQuestion(
+                fixture,
+                fixture.presentation().getId(),
+                """
+                    {
+                      "content": "좌표가 없는 영역 질문",
+                      "pageStart": 2,
+                      "pageEnd": 2,
+                      "selection": {}
+                    }
+                    """
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("INVALID_QUESTION_REFERENCE"));
+
+        assertThat(findQuestions(fixture.presentation().getId())).isEmpty();
     }
 
     @Test

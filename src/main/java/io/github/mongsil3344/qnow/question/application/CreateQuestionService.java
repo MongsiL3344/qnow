@@ -2,13 +2,13 @@ package io.github.mongsil3344.qnow.question.application;
 
 import io.github.mongsil3344.qnow.presentation.api.PresentationQueryApi;
 import io.github.mongsil3344.qnow.presentation.api.UploadedPresentationInfo;
-import io.github.mongsil3344.qnow.question.application.dto.CreateQuestionCommand;
 import io.github.mongsil3344.qnow.question.application.exception.InvalidQuestionReferenceException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionPresentationNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.SessionParticipantRequiredException;
 import io.github.mongsil3344.qnow.question.domain.Question;
 import io.github.mongsil3344.qnow.question.domain.QuestionSelection;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
+import io.github.mongsil3344.qnow.question.infrastructure.web.dto.CreateQuestionRequest.SelectionRequest;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,54 +30,54 @@ public class CreateQuestionService {
     private final QuestionRepository questionRepository;
 
     @Transactional
-    public void createQuestion(UUID presentationId, UUID userId, CreateQuestionCommand command) {
-        // 프레젠테이션id, 세션id, 페이지수 반환
+    public void createQuestion(
+            UUID presentationId,
+            UUID userId,
+            String content,
+            boolean anonymous,
+            int pageStart,
+            int pageEnd,
+            SelectionRequest selectionRequest
+    ) {
         UploadedPresentationInfo presentation = presentationQueryApi.findUploadedPresentationById(presentationId)
                 .orElseThrow(QuestionPresentationNotFoundException::new);
 
-        // 위에서 구한 세션id에 해당 유저가 참여자로 있는지 검사
         UUID participantId = sessionQueryApi.findActiveParticipantId(presentation.sessionId(), userId)
                 .orElseThrow(SessionParticipantRequiredException::new);
 
-        // 페이지 수 유효성 검사
-        validatePageReference(command.pageStart(), command.pageEnd(), presentation.pageCount());
+        validatePageReference(pageStart, pageEnd, presentation.pageCount());
 
-        // 화면 선택영역 검사 + 정규화
-        QuestionSelection selection = normalizeSelection(command);
+        QuestionSelection selection = normalizeSelection(pageStart, pageEnd, selectionRequest);
 
         Question question = Question.builder()
                 .presentationId(presentation.presentationId())
                 .questionerId(participantId)
-                .content(command.content().strip())
-                .anonymous(command.anonymous())
-                .pageStart(command.pageStart())
-                .pageEnd(command.pageEnd())
+                .content(content.strip())
+                .anonymous(anonymous)
+                .pageStart(pageStart)
+                .pageEnd(pageEnd)
                 .selection(selection)
                 .build();
 
         questionRepository.save(question);
     }
 
-
-    /* -----------------------------------------------------------------*/
-    /* -----------------------------Private-----------------------------*/
-    /* -----------------------------------------------------------------*/
-
-    // 페이지 수 검사
     private void validatePageReference(int pageStart, int pageEnd, int pageCount) {
         if (pageStart < 1 || pageEnd < pageStart || pageEnd > pageCount) {
             throw new InvalidQuestionReferenceException();
         }
     }
 
-    // Selection값 검사 + 소수점자리 정규화
-    private QuestionSelection normalizeSelection(CreateQuestionCommand command) {
-        CreateQuestionCommand.Selection selection = command.selection();
+    private QuestionSelection normalizeSelection(
+            int pageStart,
+            int pageEnd,
+            SelectionRequest selection
+    ) {
         if (selection == null) {
             return null;
         }
 
-        if (command.pageStart() != command.pageEnd() || hasMissingRatio(selection)) {
+        if (pageStart != pageEnd || hasMissingRatio(selection)) {
             throw new InvalidQuestionReferenceException();
         }
 
@@ -116,7 +116,7 @@ public class CreateQuestionService {
         );
     }
 
-    private boolean hasMissingRatio(CreateQuestionCommand.Selection selection) {
+    private boolean hasMissingRatio(SelectionRequest selection) {
         return selection.leftRatio() == null
                 || selection.topRatio() == null
                 || selection.widthRatio() == null

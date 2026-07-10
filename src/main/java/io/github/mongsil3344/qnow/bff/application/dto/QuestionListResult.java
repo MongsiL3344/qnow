@@ -1,6 +1,6 @@
 package io.github.mongsil3344.qnow.bff.application.dto;
 
-import java.math.BigDecimal;
+import io.github.mongsil3344.qnow.question.api.QuestionSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -20,17 +20,9 @@ public record QuestionListResult(
         boolean mine,
         int pageStart,
         int pageEnd,
-        SelectionResult selection,
+        QuestionSummary.Selection selection,
         int upvoteCount,
         Instant createdAt
-    ) {
-    }
-
-    public record SelectionResult(
-        BigDecimal leftRatio,
-        BigDecimal topRatio,
-        BigDecimal widthRatio,
-        BigDecimal heightRatio
     ) {
     }
 }

@@ -32,7 +32,15 @@ public class QuestionController {
             @PathVariable UUID presentationId,
             @Valid @RequestBody CreateQuestionRequest request
     ) {
-        createQuestionService.createQuestion(presentationId, principal.id(), request.toCommand());
+        createQuestionService.createQuestion(
+                presentationId,
+                principal.id(),
+                request.content(),
+                request.anonymous(),
+                request.pageStart(),
+                request.pageEnd(),
+                request.selection()
+        );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

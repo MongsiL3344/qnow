@@ -125,7 +125,7 @@ public class GetQuestionListService {
             currentUserId.equals(questionerUserId),
             question.pageStart(),
             question.pageEnd(),
-            toSelectionResult(question.selection()),
+            question.selection(),
             question.upvoteCount(),
             question.createdAt()
         );
@@ -146,18 +146,4 @@ public class GetQuestionListService {
 
         return nicknamesByUserId.getOrDefault(questionerUserId, UNKNOWN_USER_NAME);
     }
-
-    private QuestionListResult.SelectionResult toSelectionResult(QuestionSummary.Selection selection) {
-        if (selection == null) {
-            return null;
-        }
-
-        return new QuestionListResult.SelectionResult(
-            selection.leftRatio(),
-            selection.topRatio(),
-            selection.widthRatio(),
-            selection.heightRatio()
-        );
-    }
-
 }

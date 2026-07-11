@@ -7,6 +7,7 @@ import io.github.mongsil3344.qnow.presentation.application.exception.Presentatio
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +30,7 @@ public class DeletePresentationService {
     private final PresentationRepository presentationRepository;
     private final OrganizationQueryApi organizationQueryApi;
     private final SessionQueryApi sessionQueryApi;
+    private final SessionStatusApi sessionStatusApi;
     private final S3Client s3Client;
     private final String bucket;
 
@@ -36,12 +38,14 @@ public class DeletePresentationService {
             PresentationRepository presentationRepository,
             OrganizationQueryApi organizationQueryApi,
             SessionQueryApi sessionQueryApi,
+            SessionStatusApi sessionStatusApi,
             S3Client s3Client,
             @Value("${qnow.storage.s3.bucket:}") String bucket
     ) {
         this.presentationRepository = presentationRepository;
         this.organizationQueryApi = organizationQueryApi;
         this.sessionQueryApi = sessionQueryApi;
+        this.sessionStatusApi = sessionStatusApi;
         this.s3Client = s3Client;
         this.bucket = bucket;
     }
@@ -78,6 +82,8 @@ public class DeletePresentationService {
         if (!existsSessionInOrganization) {
             throw new PresentationSessionNotFoundException();
         }
+
+        sessionStatusApi.requireNotEnded(sessionId);
     }
 
     private List<String> getObjectKeys(Presentation presentation) {

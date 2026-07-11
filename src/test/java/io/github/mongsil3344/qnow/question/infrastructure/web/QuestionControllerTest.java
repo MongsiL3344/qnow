@@ -20,6 +20,7 @@ import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
 import io.github.mongsil3344.qnow.user.domain.User;
 import io.github.mongsil3344.qnow.user.infrastructure.repo.UserRepository;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -109,6 +110,24 @@ class QuestionControllerTest {
             .andExpect(status().isCreated());
 
         assertThat(findQuestion(fixture.presentation().getId()).isAnonymous()).isTrue();
+    }
+
+    @Test
+    void createQuestionRejectsEndedSession() throws Exception {
+        QuestionFixture fixture = createFixture(true, true);
+        Session session = sessionRepository.findById(fixture.presentation().getSessionId()).orElseThrow();
+        session.end(Instant.parse("2026-06-17T11:00:00Z"));
+        sessionRepository.saveAndFlush(session);
+
+        postQuestion(
+                fixture,
+                fixture.presentation().getId(),
+                pageQuestionBody("종료 후 질문", 1, 1)
+            )
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("SESSION_ENDED"));
+
+        assertThat(findQuestions(fixture.presentation().getId())).isEmpty();
     }
 
     @Test

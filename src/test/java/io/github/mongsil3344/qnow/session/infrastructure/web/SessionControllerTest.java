@@ -3,6 +3,7 @@ package io.github.mongsil3344.qnow.session.infrastructure.web;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import io.github.mongsil3344.qnow.organization.domain.Organization;
 import io.github.mongsil3344.qnow.organization.domain.UserGroup;
@@ -136,6 +137,148 @@ class SessionControllerTest {
         Participant exitedParticipant = participantRepository.findById(participant.getId()).orElseThrow();
 
         assertThat(exitedParticipant.getDeletedAt()).isNotNull();
+        assertThat(participantRepository.existsByUserIdAndSessionIdAndDeletedAtIsNull(
+            user.getId(),
+            session.getId()
+        )).isFalse();
+    }
+
+    @Test
+    void endSessionSoftDeletesActiveParticipantsAndIsIdempotent() throws Exception {
+        String password = "password123";
+        User admin = saveUser("session-end-admin-" + UUID.randomUUID() + "@example.com", password);
+        User member = saveUser("session-end-member-" + UUID.randomUUID() + "@example.com", password);
+        User exitedUser = saveUser("session-end-exited-" + UUID.randomUUID() + "@example.com", password);
+        MockHttpSession loginSession = login(admin.getEmail(), password);
+
+        Organization organization = organizationRepository.save(Organization.builder()
+            .name("org-" + UUID.randomUUID().toString().substring(0, 8))
+            .detail("세션 종료 테스트 그룹입니다.")
+            .build());
+
+        userGroupRepository.save(UserGroup.builder()
+            .userId(admin.getId())
+            .organization(organization)
+            .role(UserGroupRole.ADMIN)
+            .build());
+
+        Session session = sessionRepository.save(Session.builder()
+            .organizationId(organization.getId())
+            .creatorId(admin.getId())
+            .title("end-session-" + UUID.randomUUID())
+            .startAt(Instant.parse("2026-06-17T10:00:00Z"))
+            .build());
+
+        Participant adminParticipant = participantRepository.save(Participant.builder()
+            .userId(admin.getId())
+            .session(session)
+            .build());
+        Participant memberParticipant = participantRepository.save(Participant.builder()
+            .userId(member.getId())
+            .session(session)
+            .build());
+        Participant exitedParticipant = participantRepository.save(Participant.builder()
+            .userId(exitedUser.getId())
+            .session(session)
+            .build());
+        Instant previousExitAt = Instant.parse("2026-06-17T10:30:00Z");
+        exitedParticipant.exit(previousExitAt);
+        participantRepository.saveAndFlush(exitedParticipant);
+
+        mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/end",
+                organization.getId(),
+                session.getId())
+                .session(loginSession))
+            .andExpect(status().isNoContent());
+
+        Session endedSession = sessionRepository.findById(session.getId()).orElseThrow();
+        Participant endedAdmin = participantRepository.findById(adminParticipant.getId()).orElseThrow();
+        Participant endedMember = participantRepository.findById(memberParticipant.getId()).orElseThrow();
+        Participant previouslyExited = participantRepository.findById(exitedParticipant.getId()).orElseThrow();
+
+        assertThat(endedSession.getEndAt()).isNotNull();
+        assertThat(endedAdmin.getDeletedAt()).isEqualTo(endedSession.getEndAt());
+        assertThat(endedMember.getDeletedAt()).isEqualTo(endedSession.getEndAt());
+        assertThat(previouslyExited.getDeletedAt()).isEqualTo(previousExitAt);
+
+        Instant originalEndAt = endedSession.getEndAt();
+
+        mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/end",
+                organization.getId(),
+                session.getId())
+                .session(loginSession))
+            .andExpect(status().isNoContent());
+
+        assertThat(sessionRepository.findById(session.getId()).orElseThrow().getEndAt())
+            .isEqualTo(originalEndAt);
+        assertThat(participantRepository.findById(adminParticipant.getId()).orElseThrow().getDeletedAt())
+            .isEqualTo(originalEndAt);
+    }
+
+    @Test
+    void endSessionRejectsNonAdmin() throws Exception {
+        String password = "password123";
+        User user = saveUser("session-end-user-" + UUID.randomUUID() + "@example.com", password);
+        MockHttpSession loginSession = login(user.getEmail(), password);
+
+        Organization organization = organizationRepository.save(Organization.builder()
+            .name("org-" + UUID.randomUUID().toString().substring(0, 8))
+            .detail("세션 종료 권한 테스트 그룹입니다.")
+            .build());
+
+        userGroupRepository.save(UserGroup.builder()
+            .userId(user.getId())
+            .organization(organization)
+            .role(UserGroupRole.USER)
+            .build());
+
+        Session session = sessionRepository.save(Session.builder()
+            .organizationId(organization.getId())
+            .creatorId(user.getId())
+            .title("forbidden-end-session-" + UUID.randomUUID())
+            .build());
+
+        mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/end",
+                organization.getId(),
+                session.getId())
+                .session(loginSession))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("ORGANIZATION_ADMIN_REQUIRED"));
+
+        assertThat(sessionRepository.findById(session.getId()).orElseThrow().getEndAt()).isNull();
+    }
+
+    @Test
+    void joinEndedSessionReturnsSessionEndedConflict() throws Exception {
+        String password = "password123";
+        User user = saveUser("session-ended-join-" + UUID.randomUUID() + "@example.com", password);
+        MockHttpSession loginSession = login(user.getEmail(), password);
+
+        Organization organization = organizationRepository.save(Organization.builder()
+            .name("org-" + UUID.randomUUID().toString().substring(0, 8))
+            .detail("종료 세션 입장 테스트 그룹입니다.")
+            .build());
+
+        userGroupRepository.save(UserGroup.builder()
+            .userId(user.getId())
+            .organization(organization)
+            .role(UserGroupRole.USER)
+            .build());
+
+        Session session = sessionRepository.save(Session.builder()
+            .organizationId(organization.getId())
+            .creatorId(user.getId())
+            .title("ended-session-" + UUID.randomUUID())
+            .endAt(Instant.parse("2026-06-17T11:00:00Z"))
+            .build());
+
+        mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/participants",
+                organization.getId(),
+                session.getId())
+                .session(loginSession))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("SESSION_ENDED"));
+
         assertThat(participantRepository.existsByUserIdAndSessionIdAndDeletedAtIsNull(
             user.getId(),
             session.getId()

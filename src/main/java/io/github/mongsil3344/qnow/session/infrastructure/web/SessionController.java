@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.session.infrastructure.web;
 
 import io.github.mongsil3344.qnow.session.application.CreateSessionService;
+import io.github.mongsil3344.qnow.session.application.EndSessionService;
 import io.github.mongsil3344.qnow.session.application.ExitSessionService;
 import io.github.mongsil3344.qnow.session.application.JoinSessionService;
 import io.github.mongsil3344.qnow.session.infrastructure.web.dto.CreateSessionRequest;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SessionController {
 
     private final CreateSessionService createSessionService;
+    private final EndSessionService endSessionService;
     private final JoinSessionService joinSessionService;
     private final ExitSessionService exitSessionService;
 
@@ -70,6 +72,20 @@ public class SessionController {
         @PathVariable UUID sessionId
     ) {
         exitSessionService.exitSession(organizationId, sessionId, principal.id());
+
+        return ResponseEntity
+            .noContent()
+            .build();
+    }
+
+    @Operation(summary = "세션 종료 API")
+    @PostMapping("/{organizationId}/sessions/{sessionId}/end")
+    public ResponseEntity<Void> endSession(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID organizationId,
+        @PathVariable UUID sessionId
+    ) {
+        endSessionService.endSession(organizationId, sessionId, principal.id());
 
         return ResponseEntity
             .noContent()

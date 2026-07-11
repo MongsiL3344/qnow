@@ -31,7 +31,8 @@ public record OrganizationDetailResponse(
         String creatorName,
         Instant startAt,
         Instant endAt,
-        long participantCount
+        long participantCount,
+        boolean canEnd
     ) {
 
         private static SessionResponse from(OrganizationDetailResult.SessionResult result) {
@@ -41,7 +42,8 @@ public record OrganizationDetailResponse(
                 result.creatorName(),
                 result.startAt(),
                 result.endAt(),
-                result.participantCount()
+                result.participantCount(),
+                result.canEnd()
             );
         }
     }

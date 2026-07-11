@@ -10,6 +10,7 @@ import io.github.mongsil3344.qnow.question.domain.QuestionSelection;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
 import io.github.mongsil3344.qnow.question.infrastructure.web.dto.CreateQuestionRequest.SelectionRequest;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.UUID;
@@ -27,6 +28,7 @@ public class CreateQuestionService {
 
     private final PresentationQueryApi presentationQueryApi;
     private final SessionQueryApi sessionQueryApi;
+    private final SessionStatusApi sessionStatusApi;
     private final QuestionRepository questionRepository;
 
     @Transactional
@@ -41,6 +43,8 @@ public class CreateQuestionService {
     ) {
         UploadedPresentationInfo presentation = presentationQueryApi.findUploadedPresentationById(presentationId)
                 .orElseThrow(QuestionPresentationNotFoundException::new);
+
+        sessionStatusApi.requireNotEnded(presentation.sessionId());
 
         UUID participantId = sessionQueryApi.findActiveParticipantId(presentation.sessionId(), userId)
                 .orElseThrow(SessionParticipantRequiredException::new);

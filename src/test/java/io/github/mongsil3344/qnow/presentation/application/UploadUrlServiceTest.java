@@ -1,6 +1,9 @@
 package io.github.mongsil3344.qnow.presentation.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
@@ -8,6 +11,8 @@ import io.github.mongsil3344.qnow.presentation.application.dto.UploadUrlResult;
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
+import io.github.mongsil3344.qnow.session.api.SessionEndedException;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +40,9 @@ class UploadUrlServiceTest {
     @Mock
     private SessionQueryApi sessionQueryApi;
 
+    @Mock
+    private SessionStatusApi sessionStatusApi;
+
     private S3Presigner s3Presigner;
     private UploadUrlService uploadUrlService;
 
@@ -51,6 +59,7 @@ class UploadUrlServiceTest {
                 presentationRepository,
                 organizationQueryApi,
                 sessionQueryApi,
+                sessionStatusApi,
                 BUCKET,
                 600
         );
@@ -89,5 +98,26 @@ class UploadUrlServiceTest {
         assertThat(presentation.getS3Key()).isEqualTo(result.objectKey());
         assertThat(presentation.getThumbnailS3Key()).isEqualTo(result.thumbnailObjectKey());
         assertThat(presentation.getPageCount()).isEqualTo(42);
+    }
+
+    @Test
+    void createUploadUrlRejectsEndedSession() {
+        UUID organizationId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        when(organizationQueryApi.existsUserInOrganization(userId, organizationId)).thenReturn(true);
+        when(sessionQueryApi.existsSessionInOrganization(sessionId, organizationId)).thenReturn(true);
+        doThrow(new SessionEndedException()).when(sessionStatusApi).requireNotEnded(sessionId);
+
+        assertThatThrownBy(() -> uploadUrlService.createUploadUrl(
+            organizationId,
+            sessionId,
+            userId,
+            "종료 세션 자료",
+            10
+        )).isInstanceOf(SessionEndedException.class);
+
+        verifyNoInteractions(presentationRepository);
     }
 }

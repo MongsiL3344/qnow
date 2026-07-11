@@ -11,6 +11,7 @@ import io.github.mongsil3344.qnow.question.domain.QuestionUpvote;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionUpvoteRepository;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ public class QuestionUpvoteService {
 
     private final PresentationQueryApi presentationQueryApi;
     private final SessionQueryApi sessionQueryApi;
+    private final SessionStatusApi sessionStatusApi;
     private final QuestionRepository questionRepository;
     private final QuestionUpvoteRepository questionUpvoteRepository;
 
@@ -72,6 +74,8 @@ public class QuestionUpvoteService {
         if (sessionQueryApi.findOrganizationIdBySessionId(presentation.sessionId()).isEmpty()) {
             throw new QuestionNotFoundException();
         }
+
+        sessionStatusApi.requireNotEnded(presentation.sessionId());
 
         if (!sessionQueryApi.isActiveParticipant(presentation.sessionId(), userId)) {
             throw new SessionParticipantRequiredException();

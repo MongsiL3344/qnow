@@ -3,6 +3,7 @@ package io.github.mongsil3344.qnow.presentation.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -13,6 +14,8 @@ import io.github.mongsil3344.qnow.presentation.application.exception.Presentatio
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
+import io.github.mongsil3344.qnow.session.api.SessionEndedException;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +43,9 @@ class DeletePresentationServiceTest {
     private SessionQueryApi sessionQueryApi;
 
     @Mock
+    private SessionStatusApi sessionStatusApi;
+
+    @Mock
     private S3Client s3Client;
 
     private DeletePresentationService deletePresentationService;
@@ -50,6 +56,7 @@ class DeletePresentationServiceTest {
                 presentationRepository,
                 organizationQueryApi,
                 sessionQueryApi,
+                sessionStatusApi,
                 s3Client,
                 BUCKET
         );
@@ -108,6 +115,26 @@ class DeletePresentationServiceTest {
 
         assertThat(presentation.getDeletedAt()).isNull();
         verifyNoInteractions(s3Client);
+    }
+
+    @Test
+    void deletePresentationRejectsEndedSession() {
+        UUID organizationId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        when(organizationQueryApi.existsUserInOrganization(userId, organizationId)).thenReturn(true);
+        when(sessionQueryApi.existsSessionInOrganization(sessionId, organizationId)).thenReturn(true);
+        doThrow(new SessionEndedException()).when(sessionStatusApi).requireNotEnded(sessionId);
+
+        assertThatThrownBy(() -> deletePresentationService.deletePresentation(
+            organizationId,
+            sessionId,
+            UUID.randomUUID(),
+            userId
+        )).isInstanceOf(SessionEndedException.class);
+
+        verifyNoInteractions(presentationRepository, s3Client);
     }
 
     @Test

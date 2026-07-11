@@ -18,7 +18,8 @@ public record OrganizationDetailResult(
         String creatorName,
         Instant startAt,
         Instant endAt,
-        long participantCount
+        long participantCount,
+        boolean canEnd
     ) {
     }
 }

@@ -1,11 +1,13 @@
 package io.github.mongsil3344.qnow.session.infrastructure.repo;
 
 import io.github.mongsil3344.qnow.session.domain.Participant;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -22,6 +24,7 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
             and p.userId = :userId
             and p.deletedAt is null
             and p.session.deletedAt is null
+            and p.session.endAt is null
         """)
     boolean existsActiveParticipant(
         @Param("sessionId") UUID sessionId,
@@ -35,6 +38,7 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
             and p.userId = :userId
             and p.deletedAt is null
             and p.session.deletedAt is null
+            and p.session.endAt is null
         """)
     Optional<UUID> findActiveParticipantId(
         @Param("sessionId") UUID sessionId,
@@ -42,13 +46,28 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
     );
 
     @Query("""
-        select p.session.id as sessionId, count(p.id) as participantCount
+        select p.session.id as sessionId, count(distinct p.userId) as participantCount
         from Participant p
         where p.session.id in :sessionIds
-            and p.deletedAt is null
+            and (
+                (p.session.endAt is null and p.deletedAt is null)
+                or p.session.endAt is not null
+            )
         group by p.session.id
         """)
     List<SessionParticipantCount> countParticipantsBySessionIds(@Param("sessionIds") Collection<UUID> sessionIds);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+        update Participant p
+        set p.deletedAt = :endedAt
+        where p.session.id = :sessionId
+            and p.deletedAt is null
+        """)
+    void exitAllActiveParticipants(
+        @Param("sessionId") UUID sessionId,
+        @Param("endedAt") Instant endedAt
+    );
 
     @Query("""
         select p.id as participantId, p.userId as userId

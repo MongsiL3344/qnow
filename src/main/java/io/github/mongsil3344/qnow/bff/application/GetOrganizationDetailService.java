@@ -41,6 +41,7 @@ public class GetOrganizationDetailService {
         }
 
         Map<UUID, String> creatorNames = getCreatorNames(sessions);
+        boolean organizationAdmin = organizationQueryApi.isAdminInOrganization(userId, organizationId);
 
         List<OrganizationDetailResult.SessionResult> sessionResults = sessions.stream()
             .map(session -> new OrganizationDetailResult.SessionResult(
@@ -49,7 +50,8 @@ public class GetOrganizationDetailService {
                 creatorNames.getOrDefault(session.creatorId(), UNKNOWN_USER_NAME),
                 session.startAt(),
                 session.endAt(),
-                session.participantCount()
+                session.participantCount(),
+                organizationAdmin && session.endAt() == null
             ))
             .toList();
 

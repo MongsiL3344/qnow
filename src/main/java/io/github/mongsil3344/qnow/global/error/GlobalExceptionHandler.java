@@ -22,6 +22,7 @@ import io.github.mongsil3344.qnow.question.application.exception.QuestionNotFoun
 import io.github.mongsil3344.qnow.question.application.exception.QuestionPresentationNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.SelfUpvoteNotAllowedException;
 import io.github.mongsil3344.qnow.question.application.exception.SessionParticipantRequiredException;
+import io.github.mongsil3344.qnow.session.api.SessionEndedException;
 import io.github.mongsil3344.qnow.session.application.exception.AlreadySessionParticipantException;
 import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
 import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdminRequiredException;
@@ -120,6 +121,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(SessionEndedException.class)
+    public ResponseEntity<ErrorResponse> handleSessionEnded(SessionEndedException e) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("SESSION_ENDED", e.getMessage()));
     }
 
     @ExceptionHandler(AlreadySessionParticipantException.class)

@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.session.domain;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -48,8 +49,12 @@ public class Participant {
     }
 
     public void exit() {
+        exit(Instant.now());
+    }
+
+    public void exit(Instant exitedAt) {
         if (deletedAt == null) {
-            deletedAt = Instant.now();
+            deletedAt = Objects.requireNonNull(exitedAt);
         }
     }
 

@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.session.application;
 
 import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionEndedException;
 import io.github.mongsil3344.qnow.session.application.exception.AlreadySessionParticipantException;
 import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
 import io.github.mongsil3344.qnow.session.application.exception.SessionNotFoundException;
@@ -23,8 +24,12 @@ public class JoinSessionService {
 
     @Transactional
     public void joinSession(UUID organizationId, UUID sessionId, UUID userId) {
-        Session session = sessionRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(sessionId, organizationId)
+        Session session = sessionRepository.findByIdAndOrganizationIdForLifecycleRead(sessionId, organizationId)
             .orElseThrow(SessionNotFoundException::new);
+
+        if (session.isEnded()) {
+            throw new SessionEndedException();
+        }
 
         // 만약 조직에 존재하지 않는 유저면 예외발생
         boolean existsUserInOrganization = organizationQueryApi.existsUserInOrganization(userId, organizationId);

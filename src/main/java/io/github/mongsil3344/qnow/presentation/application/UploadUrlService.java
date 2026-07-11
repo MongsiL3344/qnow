@@ -7,6 +7,7 @@ import io.github.mongsil3344.qnow.presentation.application.exception.Presentatio
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
@@ -32,6 +33,7 @@ public class UploadUrlService {
     private final PresentationRepository presentationRepository;
     private final OrganizationQueryApi organizationQueryApi;
     private final SessionQueryApi sessionQueryApi;
+    private final SessionStatusApi sessionStatusApi;
     private final String bucket;
     private final Duration uploadUrlExpires;
 
@@ -40,6 +42,7 @@ public class UploadUrlService {
             PresentationRepository presentationRepository,
             OrganizationQueryApi organizationQueryApi,
             SessionQueryApi sessionQueryApi,
+            SessionStatusApi sessionStatusApi,
             @Value("${qnow.storage.s3.bucket:}") String bucket,
             @Value("${qnow.storage.s3.upload-url-expires-seconds:600}") long uploadUrlExpiresSeconds
     ) {
@@ -47,6 +50,7 @@ public class UploadUrlService {
         this.presentationRepository = presentationRepository;
         this.organizationQueryApi = organizationQueryApi;
         this.sessionQueryApi = sessionQueryApi;
+        this.sessionStatusApi = sessionStatusApi;
         this.bucket = bucket;
         this.uploadUrlExpires = Duration.ofSeconds(uploadUrlExpiresSeconds);
     }
@@ -121,6 +125,8 @@ public class UploadUrlService {
         if (!existsSessionInOrganization) {
             throw new PresentationSessionNotFoundException();
         }
+
+        sessionStatusApi.requireNotEnded(sessionId);
     }
 
     /* S3 객체 Key prefix 생성 메서드 */

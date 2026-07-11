@@ -22,6 +22,7 @@ import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
 import io.github.mongsil3344.qnow.user.domain.User;
 import io.github.mongsil3344.qnow.user.infrastructure.repo.UserRepository;
 import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
@@ -101,6 +102,20 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
+    void upvoteRejectsEndedSession() throws Exception {
+        UpvoteFixture fixture = createFixture();
+        fixture.presentationSession().end(Instant.parse("2026-06-17T11:00:00Z"));
+        sessionRepository.saveAndFlush(fixture.presentationSession());
+
+        putUpvote(fixture.question().getId(), fixture.voterLogin())
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("SESSION_ENDED"));
+
+        assertThat(upvoteRowCount(fixture.question().getId())).isZero();
+        assertThat(questionUpvoteCount(fixture.question().getId())).isZero();
+    }
+
+    @Test
     void cancelUpvoteHardDeletesVoteAndIsIdempotent() throws Exception {
         UpvoteFixture fixture = createFixture();
         putUpvote(fixture.question().getId(), fixture.voterLogin())
@@ -123,6 +138,23 @@ class QuestionUpvoteControllerTest {
 
         assertThat(upvoteRowCount(fixture.question().getId())).isZero();
         assertThat(questionUpvoteCount(fixture.question().getId())).isZero();
+    }
+
+    @Test
+    void cancelUpvoteRejectsEndedSession() throws Exception {
+        UpvoteFixture fixture = createFixture();
+        putUpvote(fixture.question().getId(), fixture.voterLogin())
+            .andExpect(status().isOk());
+
+        fixture.presentationSession().end(Instant.parse("2026-06-17T11:00:00Z"));
+        sessionRepository.saveAndFlush(fixture.presentationSession());
+
+        deleteUpvote(fixture.question().getId(), fixture.voterLogin())
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("SESSION_ENDED"));
+
+        assertThat(upvoteRowCount(fixture.question().getId())).isEqualTo(1);
+        assertThat(questionUpvoteCount(fixture.question().getId())).isEqualTo(1);
     }
 
     @Test

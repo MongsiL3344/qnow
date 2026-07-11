@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.session.domain;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -53,6 +54,16 @@ public class Session {
         this.startAt = startAt;
         this.endAt = endAt;
         this.title = title;
+    }
+
+    public boolean isEnded() {
+        return endAt != null;
+    }
+
+    public void end(Instant endedAt) {
+        if (endAt == null) {
+            endAt = Objects.requireNonNull(endedAt);
+        }
     }
 
     @PrePersist

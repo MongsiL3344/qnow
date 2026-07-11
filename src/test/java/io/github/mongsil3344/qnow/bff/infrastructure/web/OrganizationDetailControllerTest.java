@@ -105,7 +105,23 @@ class OrganizationDetailControllerTest {
             .andExpect(jsonPath("$.sessions[0].creatorName").value("김민준"))
             .andExpect(jsonPath("$.sessions[0].startAt").value("2026-06-17T10:00:00Z"))
             .andExpect(jsonPath("$.sessions[0].endAt").value(nullValue()))
-            .andExpect(jsonPath("$.sessions[0].participantCount").value(2));
+            .andExpect(jsonPath("$.sessions[0].participantCount").value(2))
+            .andExpect(jsonPath("$.sessions[0].canEnd").value(true));
+
+        MockHttpSession audienceLoginSession = login(audience.getEmail(), password);
+        mockMvc.perform(get("/organizations/{organizationId}", organization.getId())
+                .session(audienceLoginSession))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sessions[0].canEnd").value(false));
+
+        studySession.end(Instant.parse("2026-06-17T11:00:00Z"));
+        sessionRepository.saveAndFlush(studySession);
+
+        mockMvc.perform(get("/organizations/{organizationId}", organization.getId())
+                .session(loginSession))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sessions[0].endAt").value("2026-06-17T11:00:00Z"))
+            .andExpect(jsonPath("$.sessions[0].canEnd").value(false));
     }
 
     private User saveUser(String email, String nickname, String rawPassword) {

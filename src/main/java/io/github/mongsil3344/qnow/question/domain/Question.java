@@ -75,6 +75,18 @@ public class Question {
         this.upvoteCount = 0;
     }
 
+    public void incrementUpvoteCount() {
+        upvoteCount++;
+    }
+
+    public void decrementUpvoteCount() {
+        if (upvoteCount <= 0) {
+            throw new IllegalStateException("upvoteCount must not be negative");
+        }
+
+        upvoteCount--;
+    }
+
     @PrePersist
     void initialize() {
         if (createdAt == null) {

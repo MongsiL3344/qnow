@@ -12,6 +12,8 @@ public interface SessionQueryApi {
 
     boolean existsSessionInOrganization(UUID sessionId, UUID organizationId);
 
+    boolean isActiveParticipant(UUID sessionId, UUID userId);
+
     Optional<UUID> findActiveParticipantId(UUID sessionId, UUID userId);
 
     Optional<UUID> findOrganizationIdBySessionId(UUID sessionId);

@@ -34,6 +34,7 @@ public record QuestionListResponse(
         int pageEnd,
         QuestionSummary.Selection selection,
         int upvoteCount,
+        boolean upvotedByMe,
         Instant createdAt
     ) {
 
@@ -48,6 +49,7 @@ public record QuestionListResponse(
                 result.pageEnd(),
                 result.selection(),
                 result.upvoteCount(),
+                result.upvotedByMe(),
                 result.createdAt()
             );
         }

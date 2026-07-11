@@ -55,6 +55,12 @@ public class SessionQueryApiImpl implements SessionQueryApi {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean isActiveParticipant(UUID sessionId, UUID userId) {
+        return participantRepository.existsActiveParticipant(sessionId, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<UUID> findActiveParticipantId(UUID sessionId, UUID userId) {
         return participantRepository.findActiveParticipantId(sessionId, userId);
     }

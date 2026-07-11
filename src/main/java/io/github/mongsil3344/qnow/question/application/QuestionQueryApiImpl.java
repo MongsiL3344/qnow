@@ -8,6 +8,8 @@ import io.github.mongsil3344.qnow.question.api.QuestionSummary;
 import io.github.mongsil3344.qnow.question.domain.Question;
 import io.github.mongsil3344.qnow.question.domain.QuestionSelection;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
+import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionUpvoteRepository;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -21,18 +23,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuestionQueryApiImpl implements QuestionQueryApi {
 
     private final QuestionRepository questionRepository;
+    private final QuestionUpvoteRepository questionUpvoteRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public QuestionSlice findQuestions(UUID presentationId, QuestionListQuery query) {
+    public QuestionSlice findQuestions(UUID presentationId, UUID viewerUserId, QuestionListQuery query) {
         Slice<Question> questions = questionRepository.findAllByPresentationIdAndDeletedAtIsNull(
             presentationId,
             PageRequest.of(query.page(), query.size(), toSort(query.sort()))
         );
 
+        Set<UUID> upvotedQuestionIds = findUpvotedQuestionIds(questions, viewerUserId);
+
         return new QuestionSlice(
             questions.getContent().stream()
-                .map(this::toSummary)
+                .map(question -> toSummary(question, upvotedQuestionIds.contains(question.getId())))
                 .toList(),
             questions.getNumber(),
             questions.getSize(),
@@ -64,7 +69,20 @@ public class QuestionQueryApiImpl implements QuestionQueryApi {
         };
     }
 
-    private QuestionSummary toSummary(Question question) {
+    private Set<UUID> findUpvotedQuestionIds(Slice<Question> questions, UUID viewerUserId) {
+        if (questions.isEmpty()) {
+            return Set.of();
+        }
+
+        return Set.copyOf(questionUpvoteRepository.findUpvotedQuestionIds(
+            questions.getContent().stream()
+                .map(Question::getId)
+                .toList(),
+            viewerUserId
+        ));
+    }
+
+    private QuestionSummary toSummary(Question question, boolean upvotedByMe) {
         return new QuestionSummary(
             question.getId(),
             question.getQuestionerId(),
@@ -74,6 +92,7 @@ public class QuestionQueryApiImpl implements QuestionQueryApi {
             question.getPageEnd(),
             toSelection(question.getSelection()),
             question.getUpvoteCount(),
+            upvotedByMe,
             question.getCreatedAt()
         );
     }

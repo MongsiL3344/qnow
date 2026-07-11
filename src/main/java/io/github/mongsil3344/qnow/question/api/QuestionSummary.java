@@ -13,6 +13,7 @@ public record QuestionSummary(
     int pageEnd,
     Selection selection,
     int upvoteCount,
+    boolean upvotedByMe,
     Instant createdAt
 ) {
 

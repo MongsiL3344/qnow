@@ -87,16 +87,24 @@ class QuestionListControllerTest {
             .andExpect(jsonPath("$.content[0].questionerName").value("알 수 없는 사용자"))
             .andExpect(jsonPath("$.content[0].anonymous").value(false))
             .andExpect(jsonPath("$.content[0].mine").value(false))
+            .andExpect(jsonPath("$.content[0].upvoteCount").value(1))
+            .andExpect(jsonPath("$.content[0].upvotedByMe").value(false))
             .andExpect(jsonPath("$.content[1].id").value(fixture.anonymousMineQuestionId().toString()))
             .andExpect(jsonPath("$.content[1].questionerName").value("익명"))
             .andExpect(jsonPath("$.content[1].anonymous").value(true))
             .andExpect(jsonPath("$.content[1].mine").value(true))
+            .andExpect(jsonPath("$.content[1].upvoteCount").value(5))
+            .andExpect(jsonPath("$.content[1].upvotedByMe").value(false))
             .andExpect(jsonPath("$.content[2].id").value(fixture.exitedQuestionId().toString()))
             .andExpect(jsonPath("$.content[2].questionerName").value("퇴장 질문자"))
+            .andExpect(jsonPath("$.content[2].upvoteCount").value(8))
+            .andExpect(jsonPath("$.content[2].upvotedByMe").value(true))
             .andExpect(jsonPath("$.content[2].selection.leftRatio").value(0.1))
             .andExpect(jsonPath("$.content[2].selection.topRatio").value(0.2))
             .andExpect(jsonPath("$.content[2].selection.widthRatio").value(0.3))
             .andExpect(jsonPath("$.content[2].selection.heightRatio").value(0.4))
+            .andExpect(jsonPath("$.content[3].upvoteCount").value(3))
+            .andExpect(jsonPath("$.content[3].upvotedByMe").value(false))
             .andExpect(jsonPath("$.content[0].questionerId").doesNotExist())
             .andExpect(jsonPath("$.content[0].questionerParticipantId").doesNotExist())
             .andExpect(jsonPath("$.page").value(0))
@@ -289,6 +297,12 @@ class QuestionListControllerTest {
             baseTime.plusSeconds(4)
         );
 
+        insertQuestionUpvote(
+            exitedQuestionId,
+            currentUser.getId(),
+            baseTime.plusSeconds(5)
+        );
+
         currentParticipant.exit();
         participantRepository.saveAndFlush(currentParticipant);
 
@@ -364,6 +378,23 @@ class QuestionListControllerTest {
         );
 
         return question.getId();
+    }
+
+    private void insertQuestionUpvote(
+        UUID questionId,
+        UUID voterUserId,
+        Instant createdAt
+    ) {
+        jdbcTemplate.update(
+            """
+                INSERT INTO question_upvotes (id, question_id, voter_user_id, created_at)
+                VALUES (?, ?, ?, ?)
+                """,
+            UUID.randomUUID(),
+            questionId,
+            voterUserId,
+            OffsetDateTime.ofInstant(createdAt, ZoneOffset.UTC)
+        );
     }
 
     private MockHttpSession login(String email) throws Exception {

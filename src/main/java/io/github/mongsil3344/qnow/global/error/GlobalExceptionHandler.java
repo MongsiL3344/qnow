@@ -18,7 +18,9 @@ import io.github.mongsil3344.qnow.presentation.application.exception.Presentatio
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationUploadForbiddenException;
 import io.github.mongsil3344.qnow.question.application.exception.InvalidQuestionReferenceException;
+import io.github.mongsil3344.qnow.question.application.exception.QuestionNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionPresentationNotFoundException;
+import io.github.mongsil3344.qnow.question.application.exception.SelfUpvoteNotAllowedException;
 import io.github.mongsil3344.qnow.question.application.exception.SessionParticipantRequiredException;
 import io.github.mongsil3344.qnow.session.application.exception.AlreadySessionParticipantException;
 import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
@@ -211,6 +213,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("SESSION_PARTICIPANT_REQUIRED", e.getMessage()));
+    }
+
+    @ExceptionHandler(QuestionNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleQuestionNotFound(QuestionNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("QUESTION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(SelfUpvoteNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleSelfUpvoteNotAllowed(SelfUpvoteNotAllowedException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("SELF_UPVOTE_NOT_ALLOWED", e.getMessage()));
     }
 
     @ExceptionHandler(InvalidQuestionReferenceException.class)

@@ -22,6 +22,7 @@ public record QuestionListResult(
         int pageEnd,
         QuestionSummary.Selection selection,
         int upvoteCount,
+        boolean upvotedByMe,
         Instant createdAt
     ) {
     }

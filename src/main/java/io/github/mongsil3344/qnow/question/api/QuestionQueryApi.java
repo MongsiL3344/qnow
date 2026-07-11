@@ -4,5 +4,5 @@ import java.util.UUID;
 
 public interface QuestionQueryApi {
 
-    QuestionSlice findQuestions(UUID presentationId, QuestionListQuery query);
+    QuestionSlice findQuestions(UUID presentationId, UUID viewerUserId, QuestionListQuery query);
 }

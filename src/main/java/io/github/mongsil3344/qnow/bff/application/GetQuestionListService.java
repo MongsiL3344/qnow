@@ -55,6 +55,7 @@ public class GetQuestionListService {
 
         QuestionSlice questions = questionQueryApi.findQuestions(
             presentationId,
+            currentUserId,
             new QuestionListQuery(sort, page, size)
         );
 
@@ -127,6 +128,7 @@ public class GetQuestionListService {
             question.pageEnd(),
             question.selection(),
             question.upvoteCount(),
+            question.upvotedByMe(),
             question.createdAt()
         );
     }

@@ -2,6 +2,7 @@ package io.github.mongsil3344.qnow.question.infrastructure.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -206,6 +207,7 @@ class QuestionUpvoteControllerTest {
                 .map(loginSession -> executor.submit(() -> {
                     start.await();
                     return mockMvc.perform(put("/questions/{questionId}/upvote", fixture.question().getId())
+                            .with(csrf())
                             .session(loginSession))
                         .andReturn()
                         .getResponse()
@@ -293,7 +295,8 @@ class QuestionUpvoteControllerTest {
     void upvoteRequiresAuthentication() throws Exception {
         UpvoteFixture fixture = createFixture();
 
-        mockMvc.perform(put("/questions/{questionId}/upvote", fixture.question().getId()))
+        mockMvc.perform(put("/questions/{questionId}/upvote", fixture.question().getId())
+                .with(csrf()))
             .andExpect(status().isUnauthorized());
 
         assertThat(upvoteRowCount(fixture.question().getId())).isZero();
@@ -342,6 +345,7 @@ class QuestionUpvoteControllerTest {
         UpvoteFixture fixture = createFixture();
 
         mockMvc.perform(put("/questions/not-a-uuid/upvote")
+                .with(csrf())
                 .session(fixture.voterLogin()))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("INVALID_INPUT"));
@@ -432,11 +436,13 @@ class QuestionUpvoteControllerTest {
 
     private ResultActions putUpvote(UUID questionId, MockHttpSession loginSession) throws Exception {
         return mockMvc.perform(put("/questions/{questionId}/upvote", questionId)
+            .with(csrf())
             .session(loginSession));
     }
 
     private ResultActions deleteUpvote(UUID questionId, MockHttpSession loginSession) throws Exception {
         return mockMvc.perform(delete("/questions/{questionId}/upvote", questionId)
+            .with(csrf())
             .session(loginSession));
     }
 

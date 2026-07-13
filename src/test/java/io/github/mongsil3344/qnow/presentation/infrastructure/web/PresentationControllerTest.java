@@ -1,5 +1,6 @@
 package io.github.mongsil3344.qnow.presentation.infrastructure.web;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -112,7 +113,8 @@ class PresentationControllerTest {
         mockMvc.perform(delete("/organizations/{organizationId}/sessions/{sessionId}/presentations/{presentationId}",
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                UUID.randomUUID()))
+                UUID.randomUUID())
+                .with(csrf()))
             .andExpect(status().isUnauthorized());
     }
 

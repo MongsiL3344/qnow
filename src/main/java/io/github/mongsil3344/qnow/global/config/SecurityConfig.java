@@ -17,6 +17,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 
 @Configuration
 public class SecurityConfig {
@@ -25,10 +29,16 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AuthenticationProvider authenticationProvider,
-            SecurityContextRepository securityContextRepository
+            SecurityContextRepository securityContextRepository,
+            CsrfTokenRepository csrfTokenRepository,
+            CsrfTokenRequestHandler csrfTokenRequestHandler
     ) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfTokenRepository)
+                        .csrfTokenRequestHandler(csrfTokenRequestHandler)
+                        .ignoringRequestMatchers("/login", "/signup")
+                )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
@@ -38,6 +48,7 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
+                                "/csrf",
                                 "/signup",
                                 "/login",
                                 "/swagger-ui.html",
@@ -77,6 +88,16 @@ public class SecurityConfig {
     @Bean
     SecurityContextRepository securityContextRepository() {
         return new HttpSessionSecurityContextRepository();
+    }
+
+    @Bean
+    CsrfTokenRepository csrfTokenRepository() {
+        return new HttpSessionCsrfTokenRepository();
+    }
+
+    @Bean
+    CsrfTokenRequestHandler csrfTokenRequestHandler() {
+        return new CsrfTokenRequestAttributeHandler();
     }
 
     @Bean

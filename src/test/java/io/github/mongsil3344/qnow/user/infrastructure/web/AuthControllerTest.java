@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.user.infrastructure.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -101,6 +102,7 @@ class AuthControllerTest {
         MockHttpSession session = login(user.getEmail(), password);
 
         mockMvc.perform(post("/logout")
+                .with(csrf())
                 .session(session))
             .andExpect(status().isOk());
 
@@ -109,13 +111,14 @@ class AuthControllerTest {
 
     @Test
     void logoutRequiresAuthentication() throws Exception {
-        mockMvc.perform(post("/logout"))
+        mockMvc.perform(post("/logout").with(csrf()))
             .andExpect(status().isUnauthorized());
     }
 
     @Test
     void protectedApiRequiresAuthentication() throws Exception {
         mockMvc.perform(post("/organizations")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
             .andExpect(status().isUnauthorized());
@@ -145,6 +148,7 @@ class AuthControllerTest {
         String organizationName = "org-" + UUID.randomUUID().toString().substring(0, 8);
 
         mockMvc.perform(post("/organizations")
+                .with(csrf())
                 .session(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
@@ -169,6 +173,18 @@ class AuthControllerTest {
             spoofedUser.getId(),
             organization.getId()
         )).isFalse();
+    }
+
+    @Test
+    void protectedMutationRejectsMissingCsrfToken() throws Exception {
+        String password = "password123";
+        User user = saveUser("csrf-" + UUID.randomUUID() + "@example.com", password);
+        MockHttpSession session = login(user.getEmail(), password);
+
+        mockMvc.perform(post("/logout").session(session))
+            .andExpect(status().isForbidden());
+
+        assertThat(session.isInvalid()).isFalse();
     }
 
     private User saveUser(String email, String rawPassword) {

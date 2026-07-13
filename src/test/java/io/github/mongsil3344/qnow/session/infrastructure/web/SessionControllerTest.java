@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.session.infrastructure.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -74,6 +75,7 @@ class SessionControllerTest {
         Instant startAt = Instant.parse("2026-06-17T10:00:00Z");
 
         mockMvc.perform(post("/organizations/{organizationId}/sessions", organization.getId())
+                .with(csrf())
                 .session(loginSession)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
@@ -131,6 +133,7 @@ class SessionControllerTest {
         mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/participants/exit",
                 organization.getId(),
                 session.getId())
+                .with(csrf())
                 .session(loginSession))
             .andExpect(status().isNoContent());
 
@@ -188,6 +191,7 @@ class SessionControllerTest {
         mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/end",
                 organization.getId(),
                 session.getId())
+                .with(csrf())
                 .session(loginSession))
             .andExpect(status().isNoContent());
 
@@ -206,6 +210,7 @@ class SessionControllerTest {
         mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/end",
                 organization.getId(),
                 session.getId())
+                .with(csrf())
                 .session(loginSession))
             .andExpect(status().isNoContent());
 
@@ -241,6 +246,7 @@ class SessionControllerTest {
         mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/end",
                 organization.getId(),
                 session.getId())
+                .with(csrf())
                 .session(loginSession))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.code").value("ORGANIZATION_ADMIN_REQUIRED"));
@@ -275,6 +281,7 @@ class SessionControllerTest {
         mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/participants",
                 organization.getId(),
                 session.getId())
+                .with(csrf())
                 .session(loginSession))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.code").value("SESSION_ENDED"));

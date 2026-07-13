@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.question.infrastructure.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -210,6 +211,7 @@ class QuestionControllerTest {
     @Test
     void createQuestionRequiresAuthentication() throws Exception {
         mockMvc.perform(post("/presentations/{presentationId}/questions", UUID.randomUUID())
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(pageQuestionBody("인증되지 않은 질문", 1, 1)))
             .andExpect(status().isUnauthorized());
@@ -427,6 +429,7 @@ class QuestionControllerTest {
 
     private ResultActions postQuestion(QuestionFixture fixture, UUID presentationId, String body) throws Exception {
         return mockMvc.perform(post("/presentations/{presentationId}/questions", presentationId)
+            .with(csrf())
             .session(fixture.loginSession())
             .contentType(MediaType.APPLICATION_JSON)
             .content(body));

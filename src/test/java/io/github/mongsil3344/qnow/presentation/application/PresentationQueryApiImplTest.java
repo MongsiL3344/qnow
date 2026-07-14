@@ -50,7 +50,7 @@ class PresentationQueryApiImplTest {
     }
 
     @Test
-    void findUploadedPresentationSummariesReturnsThumbnailUrlWhenThumbnailKeyExists() {
+    void 썸네일_키가_있으면_업로드된_발표자료_요약에_썸네일_URL을_반환한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         Presentation presentation = createPresentation(organizationId, sessionId);
@@ -69,7 +69,7 @@ class PresentationQueryApiImplTest {
     }
 
     @Test
-    void findUploadedPresentationSummariesReturnsNullThumbnailUrlWhenThumbnailKeyDoesNotExist() {
+    void 썸네일_키가_없으면_업로드된_발표자료_요약의_썸네일_주소는_없다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         Presentation presentation = createPresentation(organizationId, sessionId);
@@ -87,7 +87,7 @@ class PresentationQueryApiImplTest {
     }
 
     @Test
-    void findUploadedPresentationByIdReturnsPresentationInfo() {
+    void 업로드된_발표자료_식별자로_조회하면_발표자료_정보를_반환한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         Presentation presentation = createPresentation(organizationId, sessionId);
@@ -108,7 +108,7 @@ class PresentationQueryApiImplTest {
     }
 
     @Test
-    void findUploadedPresentationByIdReturnsEmptyWhenPresentationIsUnavailable() {
+    void 발표자료를_사용할_수_없으면_업로드된_발표자료_식별자_조회는_빈_결과를_반환한다() {
         UUID presentationId = UUID.randomUUID();
 
         when(presentationRepository.findByIdAndUploadStatusAndDeletedAtIsNull(

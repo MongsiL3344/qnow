@@ -66,7 +66,7 @@ class PdfUrlServiceTest {
     }
 
     @Test
-    void createPdfUrlReturnsPresignedGetUrl() {
+    void PDF_조회_주소_생성은_미리_서명된_주소를_반환한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -94,7 +94,7 @@ class PdfUrlServiceTest {
     }
 
     @Test
-    void createPdfUrlRejectsUserOutsideOrganization() {
+    void 조직에_속하지_않은_사용자의_PDF_조회_주소_생성을_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID presentationId = UUID.randomUUID();
@@ -111,7 +111,7 @@ class PdfUrlServiceTest {
     }
 
     @Test
-    void createPdfUrlRejectsNonUploadedPresentation() {
+    void 업로드되지_않은_발표자료의_PDF_조회_주소_생성을_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID presentationId = UUID.randomUUID();

@@ -39,7 +39,7 @@ class PresenterViewAccessValidatorTest {
     }
 
     @Test
-    void activeSessionCreatorCanControlPresenterView() {
+    void 활성_세션의_생성자는_발표자_화면을_제어할_수_있다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -51,7 +51,7 @@ class PresenterViewAccessValidatorTest {
     }
 
     @Test
-    void missingSessionIsRejected() {
+    void 세션이_없으면_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -63,7 +63,7 @@ class PresenterViewAccessValidatorTest {
     }
 
     @Test
-    void endedSessionIsRejected() {
+    void 종료된_세션은_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -75,7 +75,7 @@ class PresenterViewAccessValidatorTest {
     }
 
     @Test
-    void inactiveParticipantIsRejected() {
+    void 비활성_참여자는_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();

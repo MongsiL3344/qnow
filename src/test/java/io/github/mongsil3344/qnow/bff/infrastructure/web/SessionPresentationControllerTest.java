@@ -55,7 +55,7 @@ class SessionPresentationControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void getSessionPresentationsReturnsUploadedPresentationTitlesAndPresenters() throws Exception {
+    void 세션_발표자료_조회는_업로드된_발표자료_제목과_발표자를_반환한다() throws Exception {
         String password = "password123";
         User presenter = saveUser("presenter-" + UUID.randomUUID() + "@example.com", "김민준", password);
         User audience = saveUser("audience-" + UUID.randomUUID() + "@example.com", "이서연", password);
@@ -104,7 +104,7 @@ class SessionPresentationControllerTest {
     }
 
     @Test
-    void getSessionPresentationsReturnsThumbnailUrlWhenThumbnailKeyExists() throws Exception {
+    void 썸네일_키가_있으면_세션_발표자료_조회에_썸네일_URL을_반환한다() throws Exception {
         String password = "password123";
         User presenter = saveUser("thumbnail-presenter-" + UUID.randomUUID() + "@example.com", "김민준", password);
         User audience = saveUser("thumbnail-audience-" + UUID.randomUUID() + "@example.com", "이서연", password);
@@ -147,7 +147,7 @@ class SessionPresentationControllerTest {
     }
 
     @Test
-    void getSessionPresentationsRequiresAuthentication() throws Exception {
+    void 세션_발표자료_조회는_인증이_필요하다() throws Exception {
         mockMvc.perform(get("/organizations/{organizationId}/sessions/{sessionId}/presentations",
                 UUID.randomUUID(),
                 UUID.randomUUID()))
@@ -155,7 +155,7 @@ class SessionPresentationControllerTest {
     }
 
     @Test
-    void getSessionPresentationsRequiresOrganizationMember() throws Exception {
+    void 세션_발표자료_조회는_조직_가입이_필요하다() throws Exception {
         String password = "password123";
         User owner = saveUser("owner-" + UUID.randomUUID() + "@example.com", "김민준", password);
         User outsider = saveUser("outsider-" + UUID.randomUUID() + "@example.com", "박지호", password);

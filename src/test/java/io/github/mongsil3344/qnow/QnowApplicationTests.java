@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class QnowApplicationTests {
 
     @Test
-    void contextLoads() {
+    void 애플리케이션_컨텍스트를_불러온다() {
     }
 
 }

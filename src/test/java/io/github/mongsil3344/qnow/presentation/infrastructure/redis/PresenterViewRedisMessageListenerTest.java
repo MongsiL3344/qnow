@@ -27,7 +27,7 @@ class PresenterViewRedisMessageListenerTest {
     private SimpMessagingTemplate messagingTemplate;
 
     @Test
-    void redisEventIsForwardedOnlyToItsSessionTopic() {
+    void 레디스_이벤트는_해당_세션_토픽으로만_전달된다() {
         ObjectMapper objectMapper = JsonMapper.builder().findAndAddModules().build();
         PresenterViewRedisMessageListener listener = new PresenterViewRedisMessageListener(
             objectMapper,

@@ -43,7 +43,7 @@ class PresenterViewSubscriptionInterceptorTest {
     }
 
     @Test
-    void activeParticipantCanSubscribeToPresenterViewTopic() {
+    void 활성_참여자는_발표자_화면_토픽을_구독할_수_있다() {
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         Message<byte[]> message = message(
@@ -57,7 +57,7 @@ class PresenterViewSubscriptionInterceptorTest {
     }
 
     @Test
-    void nonParticipantCannotSubscribe() {
+    void 참여자가_아니면_구독할_수_없다() {
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         Message<byte[]> message = message(
@@ -75,7 +75,7 @@ class PresenterViewSubscriptionInterceptorTest {
     }
 
     @Test
-    void unauthenticatedUserCannotSubscribe() {
+    void 인증되지_않은_사용자는_구독할_수_없다() {
         Message<byte[]> message = message(
             StompCommand.SUBSCRIBE,
             destination(UUID.randomUUID()),
@@ -90,7 +90,7 @@ class PresenterViewSubscriptionInterceptorTest {
     }
 
     @Test
-    void unsupportedSubscriptionDestinationIsDenied() {
+    void 지원하지_않는_구독_목적지는_거부한다() {
         Message<byte[]> message = message(
             StompCommand.SUBSCRIBE,
             "/topic/sessions/not-a-session/presenter-view",
@@ -106,7 +106,7 @@ class PresenterViewSubscriptionInterceptorTest {
     }
 
     @Test
-    void allClientSendFramesAreDenied() {
+    void 모든_클라이언트_전송_프레임을_거부한다() {
         Message<byte[]> message = message(
             StompCommand.SEND,
             "/topic/sessions/%s/presenter-view".formatted(UUID.randomUUID()),

@@ -79,7 +79,7 @@ class QuestionUpvoteControllerTest {
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    void upvoteCreatesOneVoteAndIsIdempotent() throws Exception {
+    void 추천하면_추천_한_건을_생성하고_멱등성을_보장한다() throws Exception {
         UpvoteFixture fixture = createFixture();
 
         putUpvote(fixture.question().getId(), fixture.voterLogin())
@@ -103,7 +103,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void upvoteRejectsEndedSession() throws Exception {
+    void 종료된_세션의_질문은_추천할_수_없다() throws Exception {
         UpvoteFixture fixture = createFixture();
         fixture.presentationSession().end(Instant.parse("2026-06-17T11:00:00Z"));
         sessionRepository.saveAndFlush(fixture.presentationSession());
@@ -117,7 +117,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void cancelUpvoteHardDeletesVoteAndIsIdempotent() throws Exception {
+    void 추천을_취소하면_추천을_물리_삭제하고_멱등성을_보장한다() throws Exception {
         UpvoteFixture fixture = createFixture();
         putUpvote(fixture.question().getId(), fixture.voterLogin())
             .andExpect(status().isOk());
@@ -142,7 +142,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void cancelUpvoteRejectsEndedSession() throws Exception {
+    void 종료된_세션의_질문은_추천을_취소할_수_없다() throws Exception {
         UpvoteFixture fixture = createFixture();
         putUpvote(fixture.question().getId(), fixture.voterLogin())
             .andExpect(status().isOk());
@@ -159,7 +159,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void upvotesFromDifferentUsersIncrementCountWithoutLosingRows() throws Exception {
+    void 서로_다른_사용자가_추천하면_행을_유지하면서_추천_수가_증가한다() throws Exception {
         UpvoteFixture fixture = createFixture();
         Voter secondVoter = saveVoter(fixture.presentationSession(), "두 번째 투표자");
 
@@ -177,7 +177,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void databaseRejectsDuplicateVoteForSameUser() throws Exception {
+    void 데이터베이스는_같은_사용자의_중복_추천을_거부한다() throws Exception {
         UpvoteFixture fixture = createFixture();
         putUpvote(fixture.question().getId(), fixture.voterLogin())
             .andExpect(status().isOk());
@@ -192,7 +192,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void concurrentUpvotesPreserveVoteRowsAndQuestionCounter() throws Exception {
+    void 동시_추천에서도_추천_행과_질문_추천_수가_보존된다() throws Exception {
         UpvoteFixture fixture = createFixture();
         Voter secondVoter = saveVoter(fixture.presentationSession(), "동시 투표자");
         List<MockHttpSession> loginSessions = List.of(
@@ -229,7 +229,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void upvoteRejectsQuestioner() throws Exception {
+    void 질문자는_자신의_질문을_추천할_수_없다() throws Exception {
         UpvoteFixture fixture = createFixture();
 
         putUpvote(fixture.question().getId(), fixture.authorLogin())
@@ -241,7 +241,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void questionerCanCancelLegacySelfUpvoteAndHardDeleteIt() throws Exception {
+    void 질문자는_기존의_자기_추천을_취소하고_물리_삭제할_수_있다() throws Exception {
         UpvoteFixture fixture = createFixture();
         insertRawUpvote(
             fixture.question().getId(),
@@ -262,7 +262,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void upvoteRejectsInactiveParticipant() throws Exception {
+    void 비활성_참여자는_질문을_추천할_수_없다() throws Exception {
         UpvoteFixture fixture = createFixture();
         fixture.voterParticipant().exit();
         participantRepository.saveAndFlush(fixture.voterParticipant());
@@ -276,7 +276,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void cancelUpvoteRejectsInactiveParticipantWithoutDeletingVote() throws Exception {
+    void 비활성_참여자의_추천_취소는_추천을_삭제하지_않고_거부된다() throws Exception {
         UpvoteFixture fixture = createFixture();
         putUpvote(fixture.question().getId(), fixture.voterLogin())
             .andExpect(status().isOk());
@@ -292,7 +292,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void upvoteRequiresAuthentication() throws Exception {
+    void 질문_추천은_인증이_필요하다() throws Exception {
         UpvoteFixture fixture = createFixture();
 
         mockMvc.perform(put("/questions/{questionId}/upvote", fixture.question().getId())
@@ -304,7 +304,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void upvoteRejectsMissingAndDeletedQuestions() throws Exception {
+    void 존재하지_않거나_삭제된_질문은_추천할_수_없다() throws Exception {
         UpvoteFixture fixture = createFixture();
         UUID missingQuestionId = UUID.randomUUID();
 
@@ -327,7 +327,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void upvoteRejectsQuestionWhosePresentationIsDeleted() throws Exception {
+    void 삭제된_발표자료의_질문은_추천할_수_없다() throws Exception {
         UpvoteFixture fixture = createFixture();
         fixture.presentation().delete();
         presentationRepository.saveAndFlush(fixture.presentation());
@@ -341,7 +341,7 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
-    void upvoteRejectsMalformedQuestionId() throws Exception {
+    void 잘못된_형식의_질문_식별자는_추천할_수_없다() throws Exception {
         UpvoteFixture fixture = createFixture();
 
         mockMvc.perform(put("/questions/not-a-uuid/upvote")

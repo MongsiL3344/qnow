@@ -73,7 +73,7 @@ class PresenterViewControllerTest {
     private PresenterViewStateStore stateStore;
 
     @Test
-    void creatorReadsEmptyPresenterViewWithControlCapability() throws Exception {
+    void 생성자는_제어_권한이_있는_빈_발표자_화면을_조회한다() throws Exception {
         Fixture fixture = createFixture(true, false);
         when(stateStore.get(fixture.session().getId()))
             .thenReturn(PresenterViewSnapshot.empty(fixture.session().getId()));
@@ -90,7 +90,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void activeAudienceReadsLatestPresenterViewWithoutControlCapability() throws Exception {
+    void 활성_청중은_제어_권한_없이_최신_발표자_화면을_조회한다() throws Exception {
         Fixture fixture = createFixture(true, false);
         PresenterViewSnapshot snapshot = snapshot(fixture, 7, 4);
         when(stateStore.get(fixture.session().getId())).thenReturn(snapshot);
@@ -105,7 +105,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void nonParticipantCannotReadPresenterView() throws Exception {
+    void 참여자가_아니면_발표자_화면을_조회할_수_없다() throws Exception {
         Fixture fixture = createFixture(false, false);
 
         mockMvc.perform(get(endpoint(), fixture.organization().getId(), fixture.session().getId())
@@ -115,7 +115,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void sessionOutsidePathOrganizationReturnsNotFound() throws Exception {
+    void 경로의_조직에_속하지_않는_세션은_찾을_수_없다() throws Exception {
         Fixture fixture = createFixture(true, false);
 
         mockMvc.perform(get(endpoint(), fixture.organization().getId(), UUID.randomUUID())
@@ -125,7 +125,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void creatorUpdatesPresenterView() throws Exception {
+    void 생성자는_발표자_화면을_변경할_수_있다() throws Exception {
         Fixture fixture = createFixture(true, false);
         PresenterViewSnapshot snapshot = snapshot(fixture, 5, 1);
         when(stateStore.update(
@@ -147,7 +147,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void activeAudienceCannotUpdatePresenterView() throws Exception {
+    void 활성_청중은_발표자_화면을_변경할_수_없다() throws Exception {
         Fixture fixture = createFixture(true, false);
 
         mockMvc.perform(put(endpoint(), fixture.organization().getId(), fixture.session().getId())
@@ -160,7 +160,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void presentationOutsideSessionReturnsNotFound() throws Exception {
+    void 세션에_속하지_않는_발표자료는_찾을_수_없다() throws Exception {
         Fixture fixture = createFixture(true, false);
 
         mockMvc.perform(put(endpoint(), fixture.organization().getId(), fixture.session().getId())
@@ -173,7 +173,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void pageOutsidePresentationRangeReturnsDedicatedError() throws Exception {
+    void 발표자료_범위를_벗어난_페이지는_전용_오류를_반환한다() throws Exception {
         Fixture fixture = createFixture(true, false);
 
         mockMvc.perform(put(endpoint(), fixture.organization().getId(), fixture.session().getId())
@@ -186,7 +186,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void endedSessionRejectsPresenterViewRead() throws Exception {
+    void 종료된_세션은_발표자_화면_조회를_거부한다() throws Exception {
         Fixture fixture = createFixture(true, true);
 
         mockMvc.perform(get(endpoint(), fixture.organization().getId(), fixture.session().getId())
@@ -196,7 +196,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void redisFailureReturnsServiceUnavailable() throws Exception {
+    void 레디스_장애는_서비스_사용_불가를_반환한다() throws Exception {
         Fixture fixture = createFixture(true, false);
         when(stateStore.get(fixture.session().getId()))
             .thenThrow(new PresenterViewUnavailableException("발표 화면 동기화 서비스를 사용할 수 없습니다"));
@@ -208,7 +208,7 @@ class PresenterViewControllerTest {
     }
 
     @Test
-    void presenterViewRequiresAuthenticationAndCsrf() throws Exception {
+    void 발표자_화면은_인증과_CSRF_토큰이_필요하다() throws Exception {
         Fixture fixture = createFixture(true, false);
 
         mockMvc.perform(get(endpoint(), fixture.organization().getId(), fixture.session().getId()))

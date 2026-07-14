@@ -28,7 +28,7 @@ class PresenterViewLifecycleListenerTest {
     }
 
     @Test
-    void sessionEndClearsPresenterView() {
+    void 세션이_종료되면_발표자_화면을_초기화한다() {
         UUID sessionId = UUID.randomUUID();
 
         listener.on(new SessionEndedEvent(sessionId));
@@ -41,7 +41,7 @@ class PresenterViewLifecycleListenerTest {
     }
 
     @Test
-    void presentationDeletionClearsMatchingPresenterView() {
+    void 발표자료가_삭제되면_일치하는_발표자_화면을_초기화한다() {
         UUID sessionId = UUID.randomUUID();
         UUID presentationId = UUID.randomUUID();
 

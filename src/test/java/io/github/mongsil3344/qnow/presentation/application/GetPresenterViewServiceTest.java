@@ -39,7 +39,7 @@ class GetPresenterViewServiceTest {
     }
 
     @Test
-    void lateParticipantReadsCurrentSnapshotAndControlCapability() {
+    void 늦게_참여한_사용자는_현재_스냅샷과_제어_가능_여부를_조회한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -54,7 +54,7 @@ class GetPresenterViewServiceTest {
     }
 
     @Test
-    void staleDeletedPresentationIsReplacedWithRevisionedTombstone() {
+    void 삭제된_발표자료의_오래된_상태는_리비전이_있는_툼스톤으로_대체한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();

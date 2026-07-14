@@ -14,7 +14,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 class HttpLoggingFilterTest {
 
     @Test
-    void appliesDifferentAnsiColorsToRequestAndResponseLogs() {
+    void 요청과_응답_로그에_서로_다른_ANSI_색상을_적용한다() {
         HttpLoggingFilter filter = new HttpLoggingFilter();
 
         assertThat(filter.colorizeRequestLog("요청"))
@@ -24,7 +24,7 @@ class HttpLoggingFilterTest {
     }
 
     @Test
-    void logsRequestAndResponseWhileMaskingSensitiveValues() throws Exception {
+    void 민감한_값을_가리면서_요청과_응답을_기록한다() throws Exception {
         TestHttpLoggingFilter filter = new TestHttpLoggingFilter();
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/login");
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -80,7 +80,7 @@ class HttpLoggingFilterTest {
     }
 
     @Test
-    void omitsBinaryBodiesAndPreservesTheResponse() throws Exception {
+    void 바이너리_본문은_생략하고_응답은_보존한다() throws Exception {
         TestHttpLoggingFilter filter = new TestHttpLoggingFilter();
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/presentations");
         MockHttpServletResponse response = new MockHttpServletResponse();

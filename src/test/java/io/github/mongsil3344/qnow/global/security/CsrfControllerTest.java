@@ -30,7 +30,7 @@ class CsrfControllerTest {
     private CsrfTokenRepository csrfTokenRepository;
 
     @Test
-    void csrfTokenCanBeIssuedWithoutAuthentication() throws Exception {
+    void 인증_없이_CSRF_토큰을_발급할_수_있다() throws Exception {
         MvcResult result = mockMvc.perform(get("/csrf"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", "no-store"))
@@ -43,7 +43,7 @@ class CsrfControllerTest {
     }
 
     @Test
-    void csrfTokenIsReusedWithinSameSession() throws Exception {
+    void 같은_세션에서는_CSRF_토큰을_재사용한다() throws Exception {
         MvcResult firstResult = mockMvc.perform(get("/csrf"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -56,7 +56,7 @@ class CsrfControllerTest {
     }
 
     @Test
-    void signupAndLoginDoNotRequireCsrfToken() throws Exception {
+    void 회원가입과_로그인은_CSRF_토큰이_필요하지_않다() throws Exception {
         String email = "csrf-exempt-" + UUID.randomUUID() + "@example.com";
         String password = "password123";
 
@@ -83,7 +83,7 @@ class CsrfControllerTest {
     }
 
     @Test
-    void issuedCsrfTokenAuthorizesProtectedMutation() throws Exception {
+    void 발급된_CSRF_토큰은_보호된_변경_요청을_허용한다() throws Exception {
         String email = "csrf-protected-" + UUID.randomUUID() + "@example.com";
         String password = "password123";
         signup(email, password);

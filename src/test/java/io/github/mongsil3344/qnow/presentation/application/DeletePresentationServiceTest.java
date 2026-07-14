@@ -69,7 +69,7 @@ class DeletePresentationServiceTest {
     }
 
     @Test
-    void deletePresentationSoftDeletesAndDeletesS3Objects() {
+    void 발표자료를_삭제하면_논리_삭제하고_S3_객체를_삭제한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID presenterId = UUID.randomUUID();
@@ -101,7 +101,7 @@ class DeletePresentationServiceTest {
     }
 
     @Test
-    void deletePresentationRejectsDifferentPresenter() {
+    void 다른_발표자의_삭제_요청을_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID presenterId = UUID.randomUUID();
@@ -125,7 +125,7 @@ class DeletePresentationServiceTest {
     }
 
     @Test
-    void deletePresentationRejectsEndedSession() {
+    void 종료된_세션의_발표자료_삭제를_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -145,7 +145,7 @@ class DeletePresentationServiceTest {
     }
 
     @Test
-    void deletePresentationKeepsSoftDeleteWhenS3DeleteFails() {
+    void S3_삭제가_실패해도_논리_삭제_상태를_유지한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID presenterId = UUID.randomUUID();

@@ -107,7 +107,7 @@ class PresenterViewWebSocketIntegrationTest {
     }
 
     @Test
-    void authenticatedActiveParticipantConnectsWithCsrfAndReceivesUpdate() throws Exception {
+    void 인증된_활성_참여자는_CSRF_토큰으로_연결하고_변경_이벤트를_수신한다() throws Exception {
         Fixture fixture = createFixture(true);
         RecordingSessionHandler sessionHandler = new RecordingSessionHandler();
         StompSession stompSession = connect(fixture.audience(), sessionHandler);
@@ -132,7 +132,7 @@ class PresenterViewWebSocketIntegrationTest {
     }
 
     @Test
-    void nonParticipantSubscriptionIsRejected() throws Exception {
+    void 참여자가_아닌_사용자의_구독은_거부된다() throws Exception {
         Fixture fixture = createFixture(false);
         RecordingSessionHandler sessionHandler = new RecordingSessionHandler();
         StompSession stompSession = connect(fixture.audience(), sessionHandler);
@@ -145,7 +145,7 @@ class PresenterViewWebSocketIntegrationTest {
     }
 
     @Test
-    void clientSendToTopicIsRejected() throws Exception {
+    void 클라이언트의_토픽_전송은_거부된다() throws Exception {
         Fixture fixture = createFixture(true);
         RecordingSessionHandler sessionHandler = new RecordingSessionHandler();
         StompSession stompSession = connect(fixture.audience(), sessionHandler);
@@ -156,7 +156,7 @@ class PresenterViewWebSocketIntegrationTest {
     }
 
     @Test
-    void eventFromAnotherSessionDoesNotLeakToSubscriber() throws Exception {
+    void 다른_세션의_이벤트는_구독자에게_노출되지_않는다() throws Exception {
         Fixture fixture = createFixture(true);
         UUID otherSessionId = UUID.randomUUID();
         RecordingSessionHandler sessionHandler = new RecordingSessionHandler();

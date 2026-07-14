@@ -76,7 +76,7 @@ class QuestionListControllerTest {
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    void getQuestionsAllowsOrganizationMemberWithoutActiveParticipationAndAppliesIdentityMasking() throws Exception {
+    void 활성_참여자가_아닌_조직_구성원도_질문을_조회할_수_있고_신원은_조건에_따라_가린다() throws Exception {
         QuestionFixture fixture = createFixture();
 
         mockMvc.perform(get("/presentations/{presentationId}/questions", fixture.presentationId())
@@ -113,7 +113,7 @@ class QuestionListControllerTest {
     }
 
     @Test
-    void getQuestionsSupportsEverySortAndSlicePagination() throws Exception {
+    void 질문_조회는_모든_정렬_방식과_슬라이스_페이징을_지원한다() throws Exception {
         QuestionFixture fixture = createFixture();
 
         expectQuestionOrder(
@@ -155,7 +155,7 @@ class QuestionListControllerTest {
     }
 
     @Test
-    void getQuestionsRejectsInvalidQueryValues() throws Exception {
+    void 질문_조회는_유효하지_않은_쿼리_값을_거부한다() throws Exception {
         QuestionFixture fixture = createFixture();
 
         getQuestions(fixture, "popular", 0, 20)
@@ -178,7 +178,7 @@ class QuestionListControllerTest {
     }
 
     @Test
-    void getQuestionsRequiresAuthenticationAndOrganizationMembership() throws Exception {
+    void 질문_조회는_인증과_조직_가입이_필요하다() throws Exception {
         QuestionFixture fixture = createFixture();
 
         mockMvc.perform(get("/presentations/{presentationId}/questions", fixture.presentationId()))

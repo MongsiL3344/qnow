@@ -6,7 +6,7 @@ import org.springframework.modulith.core.ApplicationModules;
 class ModularityTests {
 
     @Test
-    void verifiesModularStructure() {
+    void 모듈_구조를_검증한다() {
         ApplicationModules.of(QnowApplication.class).verify();
     }
 }

@@ -71,7 +71,7 @@ class UploadUrlServiceTest {
     }
 
     @Test
-    void createUploadUrlReturnsOriginalAndThumbnailUploadTargets() {
+    void 업로드_URL_생성은_원본과_썸네일_업로드_대상을_반환한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -101,7 +101,7 @@ class UploadUrlServiceTest {
     }
 
     @Test
-    void createUploadUrlRejectsEndedSession() {
+    void 종료된_세션의_업로드_URL_생성을_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();

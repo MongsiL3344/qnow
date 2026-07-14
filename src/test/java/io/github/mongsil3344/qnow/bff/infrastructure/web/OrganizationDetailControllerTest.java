@@ -55,7 +55,7 @@ class OrganizationDetailControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void getOrganizationDetailReturnsOrganizationAndSessions() throws Exception {
+    void 조직_상세_조회는_조직과_세션을_반환한다() throws Exception {
         String password = "password123";
         User creator = saveUser("creator-" + UUID.randomUUID() + "@example.com", "김민준", password);
         User audience = saveUser("audience-" + UUID.randomUUID() + "@example.com", "이서연", password);

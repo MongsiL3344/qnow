@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 class PresenterViewTransactionBoundaryTest {
 
     @Test
-    void presenterViewOperationsUseWriteCapableTransactionsForSessionLifecycleLocks() throws Exception {
+    void 발표자_화면_작업은_세션_생명주기_잠금을_위해_쓰기_가능_트랜잭션을_사용한다() throws Exception {
         assertWriteCapableTransaction(method(
             GetPresenterViewService.class,
             "getPresenterView",

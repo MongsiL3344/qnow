@@ -47,7 +47,7 @@ class UpdatePresenterViewServiceTest {
     }
 
     @Test
-    void creatorUpdatesPresenterView() {
+    void 생성자는_발표자_화면을_변경할_수_있다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -85,7 +85,7 @@ class UpdatePresenterViewServiceTest {
     }
 
     @Test
-    void nonCreatorCannotUpdatePresenterView() {
+    void 생성자가_아닌_사용자는_발표자_화면을_변경할_수_없다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -104,7 +104,7 @@ class UpdatePresenterViewServiceTest {
     }
 
     @Test
-    void presentationFromAnotherSessionIsRejected() {
+    void 다른_세션의_발표자료는_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -123,7 +123,7 @@ class UpdatePresenterViewServiceTest {
     }
 
     @Test
-    void pageOutsidePresentationRangeIsRejected() {
+    void 발표자료_페이지_범위를_벗어난_페이지는_거부한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -147,7 +147,7 @@ class UpdatePresenterViewServiceTest {
     }
 
     @Test
-    void duplicateLocationReturnsExistingRevision() {
+    void 같은_위치로_변경하면_기존_리비전을_반환한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();

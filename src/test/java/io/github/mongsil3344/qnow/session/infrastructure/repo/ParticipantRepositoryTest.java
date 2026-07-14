@@ -46,7 +46,7 @@ class ParticipantRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    void findActiveParticipantIdReturnsParticipantIdForActiveParticipantInActiveSession() {
+    void 활성_세션의_활성_참여자_식별자를_조회하면_참여자_식별자를_반환한다() {
         User user = saveUser();
         Session session = saveSession(user.getId());
         Participant participant = saveParticipant(user.getId(), session);
@@ -56,7 +56,7 @@ class ParticipantRepositoryTest {
     }
 
     @Test
-    void findActiveParticipantIdReturnsEmptyForExitedParticipant() {
+    void 퇴장한_참여자의_활성_참여자_식별자_조회는_빈_결과를_반환한다() {
         User user = saveUser();
         Session session = saveSession(user.getId());
         Participant participant = saveParticipant(user.getId(), session);
@@ -68,7 +68,7 @@ class ParticipantRepositoryTest {
     }
 
     @Test
-    void findActiveParticipantIdReturnsEmptyForParticipantInDeletedSession() {
+    void 삭제된_세션_참여자의_활성_참여자_식별자_조회는_빈_결과를_반환한다() {
         User user = saveUser();
         Session session = saveSession(user.getId());
         saveParticipant(user.getId(), session);
@@ -85,7 +85,7 @@ class ParticipantRepositoryTest {
     }
 
     @Test
-    void endedSessionCountsDistinctHistoricalParticipants() {
+    void 종료된_세션은_서로_다른_과거_참여자_수를_계산한다() {
         User firstUser = saveUser();
         User secondUser = saveUser();
         Session session = saveSession(firstUser.getId());

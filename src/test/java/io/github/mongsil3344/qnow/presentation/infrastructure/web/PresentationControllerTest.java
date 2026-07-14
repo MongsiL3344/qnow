@@ -55,7 +55,7 @@ class PresentationControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void getPresentationPdfReturnsPresignedPdfUrl() throws Exception {
+    void 발표자료_PDF_조회는_미리_서명된_PDF_URL을_반환한다() throws Exception {
         String password = "password123";
         User presenter = saveUser("pdf-presenter-" + UUID.randomUUID() + "@example.com", "김민준", password);
         User audience = saveUser("pdf-audience-" + UUID.randomUUID() + "@example.com", "이서연", password);
@@ -100,7 +100,7 @@ class PresentationControllerTest {
     }
 
     @Test
-    void getPresentationPdfRequiresAuthentication() throws Exception {
+    void 발표자료_PDF_조회는_인증이_필요하다() throws Exception {
         mockMvc.perform(get("/organizations/{organizationId}/sessions/{sessionId}/presentations/{presentationId}/pdf",
                 UUID.randomUUID(),
                 UUID.randomUUID(),
@@ -109,7 +109,7 @@ class PresentationControllerTest {
     }
 
     @Test
-    void deletePresentationRequiresAuthentication() throws Exception {
+    void 발표자료_삭제는_인증이_필요하다() throws Exception {
         mockMvc.perform(delete("/organizations/{organizationId}/sessions/{sessionId}/presentations/{presentationId}",
                 UUID.randomUUID(),
                 UUID.randomUUID(),

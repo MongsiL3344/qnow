@@ -67,7 +67,7 @@ class QuestionControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void createPageRangeQuestionPersistsAuthenticatedParticipantAndTrimmedContent() throws Exception {
+    void 페이지_범위_질문을_생성하면_인증된_참여자와_공백을_제거한_내용을_저장한다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
         postQuestion(
@@ -92,7 +92,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionPersistsAnonymousFlag() throws Exception {
+    void 질문을_생성하면_익명_여부를_저장한다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
         postQuestion(
@@ -114,7 +114,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRejectsEndedSession() throws Exception {
+    void 종료된_세션에는_질문을_생성할_수_없다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
         Session session = sessionRepository.findById(fixture.presentation().getSessionId()).orElseThrow();
         session.end(Instant.parse("2026-06-17T11:00:00Z"));
@@ -132,7 +132,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionTreatsNullAnonymousAsFalse() throws Exception {
+    void 익명_여부가_없으면_거짓으로_처리한다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
         postQuestion(
@@ -154,7 +154,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createAreaQuestionNormalizesRatiosAndPreservesExactBoundary() throws Exception {
+    void 영역_질문을_생성하면_비율을_정규화하고_정확한_경계값을_보존한다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
         postQuestion(
@@ -187,7 +187,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRejectsEmptySelectionObject() throws Exception {
+    void 빈_선택_영역_객체는_거부한다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
         postQuestion(
@@ -209,7 +209,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRequiresAuthentication() throws Exception {
+    void 질문_생성은_인증이_필요하다() throws Exception {
         mockMvc.perform(post("/presentations/{presentationId}/questions", UUID.randomUUID())
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -218,7 +218,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRejectsNonexistentPresentation() throws Exception {
+    void 존재하지_않는_발표자료에는_질문을_생성할_수_없다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
         postQuestion(fixture, UUID.randomUUID(), pageQuestionBody("존재하지 않는 자료 질문", 1, 1))
@@ -227,7 +227,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRejectsPendingPresentation() throws Exception {
+    void 업로드_대기_중인_발표자료에는_질문을_생성할_수_없다() throws Exception {
         QuestionFixture fixture = createFixture(false, true);
 
         postQuestion(
@@ -242,7 +242,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRejectsDeletedPresentation() throws Exception {
+    void 삭제된_발표자료에는_질문을_생성할_수_없다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
         fixture.presentation().delete();
         presentationRepository.saveAndFlush(fixture.presentation());
@@ -259,7 +259,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRejectsUserWhoIsNotActiveParticipant() throws Exception {
+    void 활성_참여자가_아닌_사용자는_질문을_생성할_수_없다() throws Exception {
         QuestionFixture fixture = createFixture(true, false);
 
         postQuestion(
@@ -274,7 +274,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRejectsInvalidAndOutOfBoundsPageRanges() throws Exception {
+    void 유효하지_않거나_범위를_벗어난_페이지_범위는_거부한다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
         postQuestion(
@@ -305,7 +305,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRejectsBlankAndTooLongContent() throws Exception {
+    void 공백이거나_너무_긴_질문_내용은_거부한다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
         postQuestion(fixture, fixture.presentation().getId(), pageQuestionBody("   ", 1, 1))
@@ -324,7 +324,7 @@ class QuestionControllerTest {
     }
 
     @Test
-    void createQuestionRejectsPartialOutOfBoundsAndMultiPageSelections() throws Exception {
+    void 일부가_페이지_경계를_벗어나거나_여러_페이지에_걸친_선택_영역은_거부한다() throws Exception {
         QuestionFixture fixture = createFixture(true, true);
 
         postQuestion(

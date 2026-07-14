@@ -45,7 +45,7 @@ class AuthControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void loginSavesSecurityContextInSession() throws Exception {
+    void 로그인하면_보안_컨텍스트를_세션에_저장한다() throws Exception {
         String email = "login-" + UUID.randomUUID() + "@example.com";
         String password = "password123";
         saveUser(email, password);
@@ -64,7 +64,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void loginChangesSessionId() throws Exception {
+    void 로그인하면_세션_식별자를_변경한다() throws Exception {
         String email = "login-session-id-" + UUID.randomUUID() + "@example.com";
         String password = "password123";
         saveUser(email, password);
@@ -85,7 +85,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void loginFailsWithInvalidPassword() throws Exception {
+    void 잘못된_비밀번호로_로그인하면_실패한다() throws Exception {
         String email = "login-fail-" + UUID.randomUUID() + "@example.com";
         saveUser(email, "password123");
 
@@ -96,7 +96,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void logoutInvalidatesAuthenticatedSession() throws Exception {
+    void 로그아웃하면_인증된_세션을_무효화한다() throws Exception {
         String password = "password123";
         User user = saveUser("logout-" + UUID.randomUUID() + "@example.com", password);
         MockHttpSession session = login(user.getEmail(), password);
@@ -110,13 +110,13 @@ class AuthControllerTest {
     }
 
     @Test
-    void logoutRequiresAuthentication() throws Exception {
+    void 로그아웃은_인증이_필요하다() throws Exception {
         mockMvc.perform(post("/logout").with(csrf()))
             .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void protectedApiRequiresAuthentication() throws Exception {
+    void 보호된_API는_인증이_필요하다() throws Exception {
         mockMvc.perform(post("/organizations")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -125,7 +125,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void currentUserReturnsAuthenticatedUserInfo() throws Exception {
+    void 현재_사용자_조회는_인증된_사용자_정보를_반환한다() throws Exception {
         String password = "password123";
         String nickname = "nickname-" + UUID.randomUUID().toString().substring(0, 8);
         User user = saveUser("me-" + UUID.randomUUID() + "@example.com", nickname, password);
@@ -140,7 +140,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void createOrganizationUsesAuthenticatedUserInsteadOfRequestBodyUserId() throws Exception {
+    void 조직_생성은_요청_본문의_사용자_식별자_대신_인증된_사용자를_사용한다() throws Exception {
         String password = "password123";
         User authenticatedUser = saveUser("auth-" + UUID.randomUUID() + "@example.com", password);
         User spoofedUser = saveUser("spoofed-" + UUID.randomUUID() + "@example.com", password);
@@ -176,7 +176,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void protectedMutationRejectsMissingCsrfToken() throws Exception {
+    void 보호된_변경_요청은_CSRF_토큰이_없으면_거부된다() throws Exception {
         String password = "password123";
         User user = saveUser("csrf-" + UUID.randomUUID() + "@example.com", password);
         MockHttpSession session = login(user.getEmail(), password);

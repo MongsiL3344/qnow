@@ -11,7 +11,7 @@ import org.springframework.modulith.docs.Documenter.DiagramOptions.ElementsWitho
 class DocumentationTests {
 
     @Test
-    void writesModulithDocumentation() {
+    void 모듈리스_문서를_작성한다() {
         ApplicationModules modules = ApplicationModules.of(QnowApplication.class);
 
         new Documenter(modules)

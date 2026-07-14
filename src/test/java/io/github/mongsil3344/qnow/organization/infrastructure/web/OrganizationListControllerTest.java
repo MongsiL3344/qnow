@@ -44,7 +44,7 @@ class OrganizationListControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void getOrganizationsReturnsAuthenticatedUsersOrganizations() throws Exception {
+    void 인증된_사용자가_가입한_조직_목록을_반환한다() throws Exception {
         String password = "password123";
         User owner = saveUser("owner-" + UUID.randomUUID() + "@example.com", "김민준", password);
         User member = saveUser("member-" + UUID.randomUUID() + "@example.com", "이서연", password);
@@ -88,7 +88,7 @@ class OrganizationListControllerTest {
     }
 
     @Test
-    void searchOrganizationsReturnsPagedResultsWithPasswordAndJoinedFlags() throws Exception {
+    void 조직_검색은_비밀번호_설정과_가입_여부를_포함한_페이지_결과를_반환한다() throws Exception {
         String password = "password123";
         User owner = saveUser("search-owner-" + UUID.randomUUID() + "@example.com", "김민준", password);
         User member = saveUser("search-member-" + UUID.randomUUID() + "@example.com", "이서연", password);
@@ -159,7 +159,7 @@ class OrganizationListControllerTest {
     }
 
     @Test
-    void searchOrganizationsAppliesDatabasePaging() throws Exception {
+    void 조직_검색은_데이터베이스_페이징을_적용한다() throws Exception {
         String password = "password123";
         User owner = saveUser("paging-owner-" + UUID.randomUUID() + "@example.com", "김민준", password);
         MockHttpSession loginSession = login(owner.getEmail(), password);
@@ -188,7 +188,7 @@ class OrganizationListControllerTest {
     }
 
     @Test
-    void searchOrganizationsRejectsBlankKeyword() throws Exception {
+    void 조직_검색은_공백_검색어를_거부한다() throws Exception {
         String password = "password123";
         User owner = saveUser("blank-owner-" + UUID.randomUUID() + "@example.com", "김민준", password);
         MockHttpSession loginSession = login(owner.getEmail(), password);

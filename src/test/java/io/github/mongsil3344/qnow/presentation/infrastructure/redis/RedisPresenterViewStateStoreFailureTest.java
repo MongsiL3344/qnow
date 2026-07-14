@@ -30,7 +30,7 @@ class RedisPresenterViewStateStoreFailureTest {
     private HashOperations<String, Object, Object> hashOperations;
 
     @Test
-    void redisConnectionFailureIsConvertedToUnavailableAndRecorded() {
+    void 레디스_연결_실패는_사용_불가_오류로_변환하고_기록한다() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         RedisPresenterViewStateStore stateStore = new RedisPresenterViewStateStore(
             redisTemplate,

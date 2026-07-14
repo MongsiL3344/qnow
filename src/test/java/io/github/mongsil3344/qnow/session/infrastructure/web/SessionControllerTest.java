@@ -55,7 +55,7 @@ class SessionControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void createSessionUsesStartAtFromRequestBody() throws Exception {
+    void 세션_생성은_요청_본문의_시작_시간을_사용한다() throws Exception {
         String password = "password123";
         User creator = saveUser("session-creator-" + UUID.randomUUID() + "@example.com", password);
         MockHttpSession loginSession = login(creator.getEmail(), password);
@@ -102,7 +102,7 @@ class SessionControllerTest {
     }
 
     @Test
-    void exitSessionSoftDeletesActiveParticipant() throws Exception {
+    void 세션에서_나가면_활성_참여자를_논리_삭제한다() throws Exception {
         String password = "password123";
         User user = saveUser("session-exit-" + UUID.randomUUID() + "@example.com", password);
         MockHttpSession loginSession = login(user.getEmail(), password);
@@ -147,7 +147,7 @@ class SessionControllerTest {
     }
 
     @Test
-    void endSessionSoftDeletesActiveParticipantsAndIsIdempotent() throws Exception {
+    void 세션을_종료하면_활성_참여자를_논리_삭제하고_멱등성을_보장한다() throws Exception {
         String password = "password123";
         User admin = saveUser("session-end-admin-" + UUID.randomUUID() + "@example.com", password);
         User member = saveUser("session-end-member-" + UUID.randomUUID() + "@example.com", password);
@@ -221,7 +221,7 @@ class SessionControllerTest {
     }
 
     @Test
-    void endSessionRejectsNonAdmin() throws Exception {
+    void 관리자가_아닌_사용자의_세션_종료를_거부한다() throws Exception {
         String password = "password123";
         User user = saveUser("session-end-user-" + UUID.randomUUID() + "@example.com", password);
         MockHttpSession loginSession = login(user.getEmail(), password);
@@ -255,7 +255,7 @@ class SessionControllerTest {
     }
 
     @Test
-    void joinEndedSessionReturnsSessionEndedConflict() throws Exception {
+    void 종료된_세션_참여는_세션_종료_충돌_오류를_반환한다() throws Exception {
         String password = "password123";
         User user = saveUser("session-ended-join-" + UUID.randomUUID() + "@example.com", password);
         MockHttpSession loginSession = login(user.getEmail(), password);

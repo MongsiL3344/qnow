@@ -43,7 +43,7 @@ class CompleteUploadServiceTest {
     }
 
     @Test
-    void completeUploadChecksS3ObjectBeforeMarkingUploaded() {
+    void 업로드_완료_처리는_업로드됨으로_표시하기_전에_S3_객체를_확인한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         Presentation presentation = createPresentation(organizationId, sessionId);
@@ -69,7 +69,7 @@ class CompleteUploadServiceTest {
     }
 
     @Test
-    void completeUploadDoesNotMarkUploadedWhenS3ObjectDoesNotExist() {
+    void S3_객체가_없으면_업로드됨으로_표시하지_않는다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         Presentation presentation = createPresentation(organizationId, sessionId);
@@ -87,7 +87,7 @@ class CompleteUploadServiceTest {
     }
 
     @Test
-    void completeUploadClearsThumbnailKeyAndMarksUploadedWhenThumbnailDoesNotExist() {
+    void 썸네일이_없으면_썸네일_키를_비우고_업로드됨으로_표시한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         Presentation presentation = createPresentation(organizationId, sessionId);

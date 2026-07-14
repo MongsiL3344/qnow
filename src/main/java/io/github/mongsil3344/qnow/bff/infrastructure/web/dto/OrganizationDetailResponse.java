@@ -10,6 +10,7 @@ public record OrganizationDetailResponse(
     String name,
     String detail,
     long memberCount,
+    boolean isAdmin,
     List<SessionResponse> sessions
 ) {
 
@@ -19,6 +20,7 @@ public record OrganizationDetailResponse(
             result.name(),
             result.detail(),
             result.memberCount(),
+            result.isAdmin(),
             result.sessions().stream()
                 .map(SessionResponse::from)
                 .toList()

@@ -28,6 +28,7 @@ public class GetOrganizationDetailService {
     @Transactional(readOnly = true)
     public OrganizationDetailResult getOrganizationDetail(UUID organizationId, UUID userId) {
         OrganizationInfo organizationInfo = organizationQueryApi.getOrganizationInfo(organizationId, userId);
+        boolean organizationAdmin = organizationQueryApi.isAdminInOrganization(userId, organizationId);
         List<SessionSummary> sessions = sessionQueryApi.findSessionSummariesByOrganizationId(organizationId);
 
         if (sessions.isEmpty()) {
@@ -36,12 +37,12 @@ public class GetOrganizationDetailService {
                 organizationInfo.name(),
                 organizationInfo.detail(),
                 organizationInfo.memberCount(),
+                organizationAdmin,
                 List.of()
             );
         }
 
         Map<UUID, String> creatorNames = getCreatorNames(sessions);
-        boolean organizationAdmin = organizationQueryApi.isAdminInOrganization(userId, organizationId);
 
         List<OrganizationDetailResult.SessionResult> sessionResults = sessions.stream()
             .map(session -> new OrganizationDetailResult.SessionResult(
@@ -60,6 +61,7 @@ public class GetOrganizationDetailService {
             organizationInfo.name(),
             organizationInfo.detail(),
             organizationInfo.memberCount(),
+            organizationAdmin,
             sessionResults
         );
     }

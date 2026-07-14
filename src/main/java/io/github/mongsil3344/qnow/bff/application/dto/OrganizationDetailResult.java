@@ -9,6 +9,7 @@ public record OrganizationDetailResult(
     String name,
     String detail,
     long memberCount,
+    boolean isAdmin,
     List<SessionResult> sessions
 ) {
 

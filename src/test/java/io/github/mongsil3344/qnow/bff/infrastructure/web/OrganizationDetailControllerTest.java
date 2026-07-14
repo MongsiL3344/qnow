@@ -77,6 +77,12 @@ class OrganizationDetailControllerTest {
             .role(UserGroupRole.USER)
             .build());
 
+        mockMvc.perform(get("/organizations/{organizationId}", organization.getId())
+                .session(loginSession))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.isAdmin").value(true))
+            .andExpect(jsonPath("$.sessions").isEmpty());
+
         Session studySession = sessionRepository.save(Session.builder()
             .organizationId(organization.getId())
             .creatorId(creator.getId())
@@ -100,6 +106,7 @@ class OrganizationDetailControllerTest {
             .andExpect(jsonPath("$.name").value(organization.getName()))
             .andExpect(jsonPath("$.detail").value(organization.getDetail()))
             .andExpect(jsonPath("$.memberCount").value(2))
+            .andExpect(jsonPath("$.isAdmin").value(true))
             .andExpect(jsonPath("$.sessions[0].id").value(studySession.getId().toString()))
             .andExpect(jsonPath("$.sessions[0].title").value("Spring 트랜잭션 전파"))
             .andExpect(jsonPath("$.sessions[0].creatorName").value("김민준"))
@@ -112,6 +119,7 @@ class OrganizationDetailControllerTest {
         mockMvc.perform(get("/organizations/{organizationId}", organization.getId())
                 .session(audienceLoginSession))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$.isAdmin").value(false))
             .andExpect(jsonPath("$.sessions[0].canEnd").value(false));
 
         studySession.end(Instant.parse("2026-06-17T11:00:00Z"));
@@ -120,6 +128,7 @@ class OrganizationDetailControllerTest {
         mockMvc.perform(get("/organizations/{organizationId}", organization.getId())
                 .session(loginSession))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$.isAdmin").value(true))
             .andExpect(jsonPath("$.sessions[0].endAt").value("2026-06-17T11:00:00Z"))
             .andExpect(jsonPath("$.sessions[0].canEnd").value(false));
     }

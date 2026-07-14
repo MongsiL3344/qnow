@@ -20,6 +20,8 @@ aws:
   region: ${AWS_REGION:ap-northeast-2}
 
 qnow:
+  presenter-view:
+    realtime-enabled: false
   storage:
     s3:
       bucket: qnow-test-bucket

@@ -18,7 +18,7 @@ public class SessionStatusApiImpl implements SessionStatusApi {
     private final SessionRepository sessionRepository;
 
     @Override
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.MANDATORY) // 상위 트랜잭션에 합류하는 트랜잭션 설정 (이 메서드를 호출하는 곳은 트랜잭션이어야함)
     public void requireNotEnded(UUID sessionId) {
         Session session = sessionRepository.findByIdForLifecycleRead(sessionId)
             .orElseThrow(SessionNotFoundException::new);

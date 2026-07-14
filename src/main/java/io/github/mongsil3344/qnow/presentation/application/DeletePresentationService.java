@@ -4,6 +4,7 @@ import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationDeleteForbiddenException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
+import io.github.mongsil3344.qnow.presentation.application.event.PresentationDeletedEvent;
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
@@ -14,6 +15,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -32,6 +34,7 @@ public class DeletePresentationService {
     private final SessionQueryApi sessionQueryApi;
     private final SessionStatusApi sessionStatusApi;
     private final S3Client s3Client;
+    private final ApplicationEventPublisher eventPublisher;
     private final String bucket;
 
     public DeletePresentationService(
@@ -40,6 +43,7 @@ public class DeletePresentationService {
             SessionQueryApi sessionQueryApi,
             SessionStatusApi sessionStatusApi,
             S3Client s3Client,
+            ApplicationEventPublisher eventPublisher,
             @Value("${qnow.storage.s3.bucket:}") String bucket
     ) {
         this.presentationRepository = presentationRepository;
@@ -47,6 +51,7 @@ public class DeletePresentationService {
         this.sessionQueryApi = sessionQueryApi;
         this.sessionStatusApi = sessionStatusApi;
         this.s3Client = s3Client;
+        this.eventPublisher = eventPublisher;
         this.bucket = bucket;
     }
 
@@ -69,6 +74,7 @@ public class DeletePresentationService {
 
         List<String> objectKeys = getObjectKeys(presentation);
         presentation.delete();
+        eventPublisher.publishEvent(new PresentationDeletedEvent(sessionId, presentationId));
         deleteObjectsAfterCommit(objectKeys);
     }
 

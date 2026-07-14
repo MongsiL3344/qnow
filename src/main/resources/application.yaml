@@ -26,12 +26,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,modulith
+        include: health,info,metrics,modulith
 
 aws:
   region: ${AWS_REGION:ap-northeast-2}
 
 qnow:
+  presenter-view:
+    ttl: ${QNOW_PRESENTER_VIEW_TTL:24h}
+    channel: ${QNOW_PRESENTER_VIEW_CHANNEL:qnow:presenter-view:events}
+    realtime-enabled: ${QNOW_PRESENTER_VIEW_REALTIME_ENABLED:true}
+  websocket:
+    allowed-origins: ${QNOW_WEBSOCKET_ALLOWED_ORIGINS:http://localhost:3000}
   storage:
     s3:
       bucket: ${S3_BUCKET:}

@@ -11,12 +11,16 @@ import io.github.mongsil3344.qnow.organization.application.exception.Organizatio
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationNotFoundException;
 import io.github.mongsil3344.qnow.organization.application.exception.UserNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.InvalidUploadObjectKeyException;
+import io.github.mongsil3344.qnow.presentation.application.exception.InvalidPresenterViewPageException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationAccessForbiddenException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationDeleteForbiddenException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationObjectNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationUploadForbiddenException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewControlForbiddenException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewParticipantRequiredException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewUnavailableException;
 import io.github.mongsil3344.qnow.question.application.exception.InvalidQuestionReferenceException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionPresentationNotFoundException;
@@ -184,6 +188,38 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidPresenterViewPageException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPresenterViewPage(InvalidPresenterViewPageException e) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("INVALID_PRESENTER_VIEW_PAGE", e.getMessage()));
+    }
+
+    @ExceptionHandler(PresenterViewParticipantRequiredException.class)
+    public ResponseEntity<ErrorResponse> handlePresenterViewParticipantRequired(
+        PresenterViewParticipantRequiredException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("SESSION_PARTICIPANT_REQUIRED", e.getMessage()));
+    }
+
+    @ExceptionHandler(PresenterViewControlForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handlePresenterViewControlForbidden(
+        PresenterViewControlForbiddenException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("PRESENTER_VIEW_CONTROL_FORBIDDEN", e.getMessage()));
+    }
+
+    @ExceptionHandler(PresenterViewUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handlePresenterViewUnavailable(PresenterViewUnavailableException e) {
+        return ResponseEntity
+            .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(new ErrorResponse("PRESENTER_VIEW_UNAVAILABLE", e.getMessage()));
     }
 
     @ExceptionHandler(SessionPresentationNotFoundException.class)

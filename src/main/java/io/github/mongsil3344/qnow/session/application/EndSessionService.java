@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.session.application;
 
 import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionEndedEvent;
 import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdminRequiredException;
 import io.github.mongsil3344.qnow.session.application.exception.SessionNotFoundException;
 import io.github.mongsil3344.qnow.session.domain.Session;
@@ -9,6 +10,7 @@ import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ public class EndSessionService {
     private final SessionRepository sessionRepository;
     private final ParticipantRepository participantRepository;
     private final OrganizationQueryApi organizationQueryApi;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void endSession(UUID organizationId, UUID sessionId, UUID userId) {
@@ -36,5 +39,6 @@ public class EndSessionService {
         Instant endedAt = Instant.now();
         session.end(endedAt);
         participantRepository.exitAllActiveParticipants(sessionId, endedAt);
+        eventPublisher.publishEvent(new SessionEndedEvent(sessionId));
     }
 }

@@ -60,7 +60,7 @@ class HttpLoggingFilterTest {
             assertThat(log).doesNotContain("plain-password", "request-secret", "session-secret", "csrf-secret");
         });
         assertThat(filter.responseLogs).singleElement().satisfies(log -> {
-            assertThat(log).startsWith("\n" + "↓   ".repeat(12) + "↓\nHTTP 응답\n");
+            assertThat(log).startsWith("\n**************************************************\nHTTP 응답\n");
             assertThat(log).endsWith("\n**************************************************");
             assertThat(log).contains(
                     "HTTP 응답",

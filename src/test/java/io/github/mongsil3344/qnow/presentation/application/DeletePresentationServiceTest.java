@@ -11,11 +11,12 @@ import static org.mockito.Mockito.when;
 
 import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationDeleteForbiddenException;
+import io.github.mongsil3344.qnow.presentation.application.event.PresentationDeletedEvent;
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
+import io.github.mongsil3344.qnow.session.api.SessionEndedException;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
-import io.github.mongsil3344.qnow.session.api.SessionEndedException;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -48,6 +50,9 @@ class DeletePresentationServiceTest {
     @Mock
     private S3Client s3Client;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private DeletePresentationService deletePresentationService;
 
     @BeforeEach
@@ -58,6 +63,7 @@ class DeletePresentationServiceTest {
                 sessionQueryApi,
                 sessionStatusApi,
                 s3Client,
+                eventPublisher,
                 BUCKET
         );
     }
@@ -82,6 +88,7 @@ class DeletePresentationServiceTest {
         );
 
         assertThat(presentation.getDeletedAt()).isNotNull();
+        verify(eventPublisher).publishEvent(new PresentationDeletedEvent(sessionId, presentation.getId()));
 
         ArgumentCaptor<DeleteObjectRequest> requestCaptor = ArgumentCaptor.forClass(DeleteObjectRequest.class);
         verify(s3Client, times(2)).deleteObject(requestCaptor.capture());

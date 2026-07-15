@@ -24,6 +24,8 @@ public interface SessionQueryApi {
 
     Optional<UUID> findOrganizationIdBySessionId(UUID sessionId);
 
+    boolean isGuestUpvoteAllowed(UUID sessionId);
+
     Map<UUID, UUID> findUserIdsByParticipantIds(Collection<UUID> participantIds);
 
     Map<UUID, String> findGuestNicknamesByParticipantIds(Collection<UUID> participantIds);

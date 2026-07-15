@@ -3,6 +3,7 @@ package io.github.mongsil3344.qnow.question.application;
 import io.github.mongsil3344.qnow.presentation.api.PresentationQueryApi;
 import io.github.mongsil3344.qnow.presentation.api.UploadedPresentationInfo;
 import io.github.mongsil3344.qnow.question.application.dto.QuestionUpvoteResult;
+import io.github.mongsil3344.qnow.question.application.exception.GuestUpvoteNotAllowedException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.SelfUpvoteNotAllowedException;
 import io.github.mongsil3344.qnow.question.application.exception.SessionParticipantRequiredException;
@@ -38,8 +39,10 @@ public class QuestionUpvoteService {
     @Transactional
     public QuestionUpvoteResult upvote(UUID questionId, SessionActor actor) {
         Question question = findActiveQuestionForUpdate(questionId);
-        UUID participantId = requireActiveParticipant(question, actor);
+        ActiveParticipation participation = requireActiveParticipant(question, actor);
+        UUID participantId = participation.participantId();
 
+        validateGuestUpvoteAllowed(actor, participation.sessionId());
         validateNotQuestioner(question, actor, participantId);
 
         if (findQuestionUpvote(questionId, actor, participantId).isEmpty()) {
@@ -58,7 +61,7 @@ public class QuestionUpvoteService {
     @Transactional
     public QuestionUpvoteResult cancelUpvote(UUID questionId, SessionActor actor) {
         Question question = findActiveQuestionForUpdate(questionId);
-        UUID participantId = requireActiveParticipant(question, actor);
+        UUID participantId = requireActiveParticipant(question, actor).participantId();
 
         findQuestionUpvote(questionId, actor, participantId)
             .ifPresent(questionUpvote -> {
@@ -75,7 +78,7 @@ public class QuestionUpvoteService {
             .orElseThrow(QuestionNotFoundException::new);
     }
 
-    private UUID requireActiveParticipant(
+    private ActiveParticipation requireActiveParticipant(
         Question question,
         SessionActor actor
     ) {
@@ -89,11 +92,19 @@ public class QuestionUpvoteService {
 
         sessionStatusApi.requireNotEnded(presentation.sessionId());
 
-        return sessionQueryApi.findActiveParticipantId(
+        UUID participantId = sessionQueryApi.findActiveParticipantId(
                 presentation.sessionId(),
                 actor
             )
             .orElseThrow(SessionParticipantRequiredException::new);
+
+        return new ActiveParticipation(presentation.sessionId(), participantId);
+    }
+
+    private void validateGuestUpvoteAllowed(SessionActor actor, UUID sessionId) {
+        if (actor instanceof SessionActor.Guest && !sessionQueryApi.isGuestUpvoteAllowed(sessionId)) {
+            throw new GuestUpvoteNotAllowedException();
+        }
     }
 
     private void validateNotQuestioner(Question question, SessionActor actor, UUID participantId) {
@@ -139,4 +150,6 @@ public class QuestionUpvoteService {
             question.getUpvoteCount()
         );
     }
+
+    private record ActiveParticipation(UUID sessionId, UUID participantId) {}
 }

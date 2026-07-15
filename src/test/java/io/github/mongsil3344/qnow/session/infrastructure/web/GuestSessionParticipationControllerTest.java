@@ -258,6 +258,7 @@ class GuestSessionParticipationControllerTest {
             .creatorId(creator.getId())
             .title("guest-flow-session-" + UUID.randomUUID())
             .endAt(ended ? Instant.parse("2026-07-15T10:00:00Z") : null)
+            .guestUpvoteAllowed(true)
             .build());
         Participant creatorParticipant = participantRepository.save(Participant.member(creator.getId(), session));
         SessionParticipateCode participateCode = participateCodeRepository.save(

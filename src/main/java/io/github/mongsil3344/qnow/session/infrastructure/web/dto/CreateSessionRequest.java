@@ -9,5 +9,12 @@ public record CreateSessionRequest(
     String title,
 
     @NotNull
-    Instant startAt
-) {}
+    Instant startAt,
+
+    Boolean guestUpvoteAllowed
+) {
+
+    public CreateSessionRequest {
+        guestUpvoteAllowed = Boolean.TRUE.equals(guestUpvoteAllowed);
+    }
+}

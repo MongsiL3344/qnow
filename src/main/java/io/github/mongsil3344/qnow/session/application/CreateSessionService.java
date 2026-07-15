@@ -25,7 +25,13 @@ public class CreateSessionService {
     private final OrganizationQueryApi organizationQueryApi;
 
     @Transactional
-    public void createSession(UUID organizationId, UUID creatorId, String title, Instant startAt) {
+    public void createSession(
+        UUID organizationId,
+        UUID creatorId,
+        String title,
+        Instant startAt,
+        boolean guestUpvoteAllowed
+    ) {
 
         boolean existUserInGroup = organizationQueryApi.existsUserInOrganization(creatorId, organizationId);
         if (!existUserInGroup) {
@@ -42,6 +48,7 @@ public class CreateSessionService {
             .creatorId(creatorId)
             .title(title)
             .startAt(startAt)
+            .guestUpvoteAllowed(guestUpvoteAllowed)
             .build();
 
         Session savedSession = sessionRepository.save(newSession);

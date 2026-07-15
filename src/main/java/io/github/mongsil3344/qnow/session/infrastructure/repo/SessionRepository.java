@@ -53,6 +53,8 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
 
     boolean existsByIdAndCreatorIdAndDeletedAtIsNull(UUID id, UUID creatorId);
 
+    boolean existsByIdAndGuestUpvoteAllowedTrueAndDeletedAtIsNull(UUID id);
+
     List<Session> findAllByOrganizationIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID organizationId);
 
     @Query("""

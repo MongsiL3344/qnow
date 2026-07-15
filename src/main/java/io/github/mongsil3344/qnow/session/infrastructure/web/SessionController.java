@@ -51,7 +51,8 @@ public class SessionController {
             organizationId,
             principal.id(),
             createSessionRequest.title(),
-            createSessionRequest.startAt()
+            createSessionRequest.startAt(),
+            createSessionRequest.guestUpvoteAllowed()
         );
 
         return ResponseEntity

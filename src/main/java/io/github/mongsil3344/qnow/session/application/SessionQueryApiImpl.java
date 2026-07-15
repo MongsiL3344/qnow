@@ -86,6 +86,12 @@ public class SessionQueryApiImpl implements SessionQueryApi {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean isGuestUpvoteAllowed(UUID sessionId) {
+        return sessionRepository.existsByIdAndGuestUpvoteAllowedTrueAndDeletedAtIsNull(sessionId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Map<UUID, UUID> findUserIdsByParticipantIds(Collection<UUID> participantIds) {
         if (participantIds.isEmpty()) {
             return Map.of();

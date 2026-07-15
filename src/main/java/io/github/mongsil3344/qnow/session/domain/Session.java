@@ -41,6 +41,9 @@ public class Session {
     @Column(name = "end_at")
     private Instant endAt;
 
+    @Column(name = "guest_upvote_allowed", nullable = false)
+    private boolean guestUpvoteAllowed;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -48,12 +51,20 @@ public class Session {
     private Instant deletedAt;
 
     @Builder
-    private Session(UUID organizationId, UUID creatorId, Instant startAt, Instant endAt, String title) {
+    private Session(
+        UUID organizationId,
+        UUID creatorId,
+        Instant startAt,
+        Instant endAt,
+        String title,
+        boolean guestUpvoteAllowed
+    ) {
         this.organizationId = organizationId;
         this.creatorId = creatorId;
         this.startAt = startAt;
         this.endAt = endAt;
         this.title = title;
+        this.guestUpvoteAllowed = guestUpvoteAllowed;
     }
 
     public boolean isEnded() {

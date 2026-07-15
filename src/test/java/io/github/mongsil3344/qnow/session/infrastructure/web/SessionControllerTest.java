@@ -99,12 +99,56 @@ class SessionControllerTest {
 
         assertThat(createdSession.getCreatorId()).isEqualTo(creator.getId());
         assertThat(createdSession.getStartAt()).isEqualTo(startAt);
+        assertThat(createdSession.isGuestUpvoteAllowed()).isFalse();
         assertThat(participantRepository.existsByUserIdAndSessionIdAndDeletedAtIsNull(
             creator.getId(),
             createdSession.getId()
         )).isTrue();
         assertThat(participateCodeRepository.findActiveBySessionId(createdSession.getId()))
             .isPresent();
+    }
+
+    @Test
+    void 세션_생성시_비회원_좋아요를_허용할_수_있다() throws Exception {
+        String password = "password123";
+        User creator = saveUser("guest-upvote-" + UUID.randomUUID() + "@example.com", password);
+        MockHttpSession loginSession = login(creator.getEmail(), password);
+
+        Organization organization = organizationRepository.save(Organization.builder()
+            .name("org-" + UUID.randomUUID().toString().substring(0, 8))
+            .detail("비회원 좋아요 허용 세션 생성 테스트 그룹입니다.")
+            .build());
+
+        userGroupRepository.save(UserGroup.builder()
+            .userId(creator.getId())
+            .organization(organization)
+            .role(UserGroupRole.ADMIN)
+            .build());
+
+        String title = "guest-upvote-session-" + UUID.randomUUID();
+        Instant startAt = Instant.parse("2026-06-17T10:00:00Z");
+
+        mockMvc.perform(post("/organizations/{organizationId}/sessions", organization.getId())
+                .with(csrf())
+                .session(loginSession)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "title": "%s",
+                      "startAt": "%s",
+                      "guestUpvoteAllowed": true
+                    }
+                    """.formatted(title, startAt)))
+            .andExpect(status().isCreated());
+
+        Session createdSession = sessionRepository
+            .findAllByOrganizationIdAndDeletedAtIsNullOrderByCreatedAtDesc(organization.getId())
+            .stream()
+            .filter(session -> title.equals(session.getTitle()))
+            .findFirst()
+            .orElseThrow();
+
+        assertThat(createdSession.isGuestUpvoteAllowed()).isTrue();
     }
 
     @Test

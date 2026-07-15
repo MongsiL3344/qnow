@@ -2,6 +2,7 @@ package io.github.mongsil3344.qnow.question.infrastructure.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -16,6 +17,7 @@ import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import io.github.mongsil3344.qnow.question.domain.Question;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
+import io.github.mongsil3344.qnow.session.api.GuestPrincipal;
 import io.github.mongsil3344.qnow.session.domain.Participant;
 import io.github.mongsil3344.qnow.session.domain.Session;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.ParticipantRepository;
@@ -40,6 +42,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -114,6 +118,38 @@ class QuestionUpvoteControllerTest {
 
         assertThat(upvoteRowCount(fixture.question().getId())).isZero();
         assertThat(questionUpvoteCount(fixture.question().getId())).isZero();
+    }
+
+    @Test
+    void 비회원_좋아요가_비활성화된_세션에서는_비회원_추천을_거부한다() throws Exception {
+        UpvoteFixture fixture = createFixture();
+        Participant guest = participantRepository.save(
+            Participant.guest("비회원 투표자", fixture.presentationSession())
+        );
+
+        putGuestUpvote(fixture.question().getId(), guest, fixture.presentationSession())
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("GUEST_UPVOTE_NOT_ALLOWED"));
+
+        assertThat(upvoteRowCount(fixture.question().getId())).isZero();
+        assertThat(questionUpvoteCount(fixture.question().getId())).isZero();
+    }
+
+    @Test
+    void 비회원_좋아요가_활성화된_세션에서는_비회원이_추천할_수_있다() throws Exception {
+        UpvoteFixture fixture = createFixture(true);
+        Participant guest = participantRepository.save(
+            Participant.guest("비회원 투표자", fixture.presentationSession())
+        );
+
+        putGuestUpvote(fixture.question().getId(), guest, fixture.presentationSession())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.upvotedByMe").value(true))
+            .andExpect(jsonPath("$.upvoteCount").value(1));
+
+        assertThat(voterGuestParticipantIds(fixture.question().getId()))
+            .containsExactly(guest.getId());
+        assertThat(questionUpvoteCount(fixture.question().getId())).isEqualTo(1);
     }
 
     @Test
@@ -352,6 +388,10 @@ class QuestionUpvoteControllerTest {
     }
 
     private UpvoteFixture createFixture() throws Exception {
+        return createFixture(false);
+    }
+
+    private UpvoteFixture createFixture(boolean guestUpvoteAllowed) throws Exception {
         User author = saveUser("질문 작성자");
         User voter = saveUser("투표자");
         Organization organization = organizationRepository.save(Organization.builder()
@@ -362,6 +402,7 @@ class QuestionUpvoteControllerTest {
             .organizationId(organization.getId())
             .creatorId(author.getId())
             .title("질문 공감 테스트 세션")
+            .guestUpvoteAllowed(guestUpvoteAllowed)
             .build());
         Participant authorParticipant = saveParticipant(author, presentationSession);
         Participant voterParticipant = saveParticipant(voter, presentationSession);
@@ -437,6 +478,18 @@ class QuestionUpvoteControllerTest {
             .session(loginSession));
     }
 
+    private ResultActions putGuestUpvote(UUID questionId, Participant guest, Session session) throws Exception {
+        var guestAuthentication = UsernamePasswordAuthenticationToken.authenticated(
+            new GuestPrincipal(guest.getId(), session.getId()),
+            null,
+            List.of(new SimpleGrantedAuthority("ROLE_GUEST"))
+        );
+
+        return mockMvc.perform(put("/questions/{questionId}/upvote", questionId)
+            .with(csrf())
+            .with(authentication(guestAuthentication)));
+    }
+
     private ResultActions deleteUpvote(UUID questionId, MockHttpSession loginSession) throws Exception {
         return mockMvc.perform(delete("/questions/{questionId}/upvote", questionId)
             .with(csrf())
@@ -462,6 +515,14 @@ class QuestionUpvoteControllerTest {
     private List<UUID> voterUserIds(UUID questionId) {
         return jdbcTemplate.queryForList(
             "SELECT voter_user_id FROM question_upvotes WHERE question_id = ?",
+            UUID.class,
+            questionId
+        );
+    }
+
+    private List<UUID> voterGuestParticipantIds(UUID questionId) {
+        return jdbcTemplate.queryForList(
+            "SELECT voter_guest_participant_id FROM question_upvotes WHERE question_id = ?",
             UUID.class,
             questionId
         );

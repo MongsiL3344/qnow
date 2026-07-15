@@ -23,6 +23,7 @@ import io.github.mongsil3344.qnow.presentation.application.exception.Presentatio
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewControlForbiddenException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewParticipantRequiredException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewUnavailableException;
+import io.github.mongsil3344.qnow.question.application.exception.GuestUpvoteNotAllowedException;
 import io.github.mongsil3344.qnow.question.application.exception.InvalidQuestionReferenceException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionPresentationNotFoundException;
@@ -301,6 +302,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("SELF_UPVOTE_NOT_ALLOWED", e.getMessage()));
+    }
+
+    @ExceptionHandler(GuestUpvoteNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleGuestUpvoteNotAllowed(GuestUpvoteNotAllowedException e) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("GUEST_UPVOTE_NOT_ALLOWED", e.getMessage()));
     }
 
     @ExceptionHandler(InvalidQuestionReferenceException.class)

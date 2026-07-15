@@ -1,0 +1,2 @@
+ALTER TABLE sessions
+  ADD COLUMN guest_upvote_allowed BOOLEAN NOT NULL DEFAULT FALSE;

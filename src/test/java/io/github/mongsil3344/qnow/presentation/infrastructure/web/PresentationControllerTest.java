@@ -118,6 +118,52 @@ class PresentationControllerTest {
             .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void 업로드_완료는_로그인한_사용자가_조직_회원이_아니면_거부한다() throws Exception {
+        String password = "password123";
+        User organizationMember = saveUser(
+                "upload-member-" + UUID.randomUUID() + "@example.com",
+                "조직 회원",
+                password
+        );
+        User nonMember = saveUser(
+                "upload-non-member-" + UUID.randomUUID() + "@example.com",
+                "외부 사용자",
+                password
+        );
+        MockHttpSession loginSession = login(nonMember.getEmail(), password);
+
+        Organization organization = saveOrganization();
+        userGroupRepository.save(UserGroup.builder()
+                .userId(organizationMember.getId())
+                .organization(organization)
+                .role(UserGroupRole.ADMIN)
+                .build());
+        Session session = sessionRepository.save(Session.builder()
+                .organizationId(organization.getId())
+                .creatorId(organizationMember.getId())
+                .title("업로드 권한 검증 세션")
+                .build());
+        String objectKey = "presentations/%s/%s/presentation-id/original.pdf".formatted(
+                organization.getId(),
+                session.getId()
+        );
+
+        mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/presentations/upload-complete",
+                organization.getId(),
+                session.getId())
+                .session(loginSession)
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "objectKey": "%s"
+                    }
+                    """.formatted(objectKey)))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("PRESENTATION_UPLOAD_FORBIDDEN"));
+    }
+
     private User saveUser(String email, String nickname, String rawPassword) {
         User user = User.builder()
                 .email(email)

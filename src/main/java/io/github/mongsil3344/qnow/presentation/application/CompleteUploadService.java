@@ -1,7 +1,9 @@
 package io.github.mongsil3344.qnow.presentation.application;
 
+import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
 import io.github.mongsil3344.qnow.presentation.application.exception.InvalidUploadObjectKeyException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationObjectNotFoundException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresentationUploadForbiddenException;
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import java.util.UUID;
@@ -18,21 +20,28 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 public class CompleteUploadService {
 
     private final PresentationRepository presentationRepository;
+    private final OrganizationQueryApi organizationQueryApi;
     private final S3Client s3Client;
     private final String bucket;
 
     public CompleteUploadService(
             PresentationRepository presentationRepository,
+            OrganizationQueryApi organizationQueryApi,
             S3Client s3Client,
             @Value("${qnow.storage.s3.bucket:}") String bucket
     ) {
         this.presentationRepository = presentationRepository;
+        this.organizationQueryApi = organizationQueryApi;
         this.s3Client = s3Client;
         this.bucket = bucket;
     }
 
     @Transactional
-    public void completeUpload(UUID organizationId, UUID sessionId, String objectKey) {
+    public void completeUpload(UUID organizationId, UUID sessionId, UUID userId, String objectKey) {
+        if (!organizationQueryApi.existsUserInOrganization(userId, organizationId)) {
+            throw new PresentationUploadForbiddenException();
+        }
+
         String expectedPrefix = objectKeyPrefix(organizationId, sessionId);
         if (!objectKey.startsWith(expectedPrefix)) {
             throw new InvalidUploadObjectKeyException();

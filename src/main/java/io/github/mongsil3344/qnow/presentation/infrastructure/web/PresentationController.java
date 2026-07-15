@@ -60,11 +60,17 @@ public class PresentationController {
     @Operation(summary = "발표 자료 업로드 완료 API")
     @PostMapping("/upload-complete")
     public ResponseEntity<Void> completeUpload(
+            @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable UUID organizationId,
             @PathVariable UUID sessionId,
             @Valid @RequestBody UploadCompleteRequest request
     ) {
-        completeUploadService.completeUpload(organizationId, sessionId, request.objectKey());
+        completeUploadService.completeUpload(
+                organizationId,
+                sessionId,
+                principal.id(),
+                request.objectKey()
+        );
 
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)

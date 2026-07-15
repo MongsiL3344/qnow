@@ -5,9 +5,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationObjectNotFoundException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresentationUploadForbiddenException;
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.UploadStatus;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
@@ -33,27 +36,37 @@ class CompleteUploadServiceTest {
     private PresentationRepository presentationRepository;
 
     @Mock
+    private OrganizationQueryApi organizationQueryApi;
+
+    @Mock
     private S3Client s3Client;
 
     private CompleteUploadService completeUploadService;
 
     @BeforeEach
     void setUp() {
-        completeUploadService = new CompleteUploadService(presentationRepository, s3Client, BUCKET);
+        completeUploadService = new CompleteUploadService(
+                presentationRepository,
+                organizationQueryApi,
+                s3Client,
+                BUCKET
+        );
     }
 
     @Test
     void 업로드_완료_처리는_업로드됨으로_표시하기_전에_S3_객체를_확인한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         Presentation presentation = createPresentation(organizationId, sessionId);
 
+        when(organizationQueryApi.existsUserInOrganization(userId, organizationId)).thenReturn(true);
         when(presentationRepository.findByS3KeyAndSessionIdAndDeletedAtIsNull(presentation.getS3Key(), sessionId))
                 .thenReturn(Optional.of(presentation));
         when(s3Client.headObject(any(HeadObjectRequest.class)))
                 .thenReturn(HeadObjectResponse.builder().build());
 
-        completeUploadService.completeUpload(organizationId, sessionId, presentation.getS3Key());
+        completeUploadService.completeUpload(organizationId, sessionId, userId, presentation.getS3Key());
 
         assertThat(presentation.getUploadStatus()).isEqualTo(UploadStatus.UPLOADED);
 
@@ -72,14 +85,21 @@ class CompleteUploadServiceTest {
     void S3_객체가_없으면_업로드됨으로_표시하지_않는다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         Presentation presentation = createPresentation(organizationId, sessionId);
 
+        when(organizationQueryApi.existsUserInOrganization(userId, organizationId)).thenReturn(true);
         when(presentationRepository.findByS3KeyAndSessionIdAndDeletedAtIsNull(presentation.getS3Key(), sessionId))
                 .thenReturn(Optional.of(presentation));
         when(s3Client.headObject(any(HeadObjectRequest.class)))
                 .thenThrow(S3Exception.builder().statusCode(404).message("not found").build());
 
-        assertThatThrownBy(() -> completeUploadService.completeUpload(organizationId, sessionId, presentation.getS3Key()))
+        assertThatThrownBy(() -> completeUploadService.completeUpload(
+                organizationId,
+                sessionId,
+                userId,
+                presentation.getS3Key()
+        ))
                 .isInstanceOf(PresentationObjectNotFoundException.class);
 
         assertThat(presentation.getUploadStatus()).isEqualTo(UploadStatus.PENDING);
@@ -90,18 +110,41 @@ class CompleteUploadServiceTest {
     void 썸네일이_없으면_썸네일_키를_비우고_업로드됨으로_표시한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         Presentation presentation = createPresentation(organizationId, sessionId);
 
+        when(organizationQueryApi.existsUserInOrganization(userId, organizationId)).thenReturn(true);
         when(presentationRepository.findByS3KeyAndSessionIdAndDeletedAtIsNull(presentation.getS3Key(), sessionId))
                 .thenReturn(Optional.of(presentation));
         when(s3Client.headObject(any(HeadObjectRequest.class)))
                 .thenReturn(HeadObjectResponse.builder().build())
                 .thenThrow(S3Exception.builder().statusCode(404).message("not found").build());
 
-        completeUploadService.completeUpload(organizationId, sessionId, presentation.getS3Key());
+        completeUploadService.completeUpload(organizationId, sessionId, userId, presentation.getS3Key());
 
         assertThat(presentation.getUploadStatus()).isEqualTo(UploadStatus.UPLOADED);
         assertThat(presentation.getThumbnailS3Key()).isNull();
+    }
+
+    @Test
+    void 조직에_참여하지_않은_사용자는_업로드_완료_처리를_할_수_없다() {
+        UUID organizationId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        String objectKey = "presentations/%s/%s/presentation-id/original.pdf".formatted(
+                organizationId,
+                sessionId
+        );
+
+        assertThatThrownBy(() -> completeUploadService.completeUpload(
+                organizationId,
+                sessionId,
+                userId,
+                objectKey
+        )).isInstanceOf(PresentationUploadForbiddenException.class);
+
+        verify(organizationQueryApi).existsUserInOrganization(userId, organizationId);
+        verifyNoInteractions(presentationRepository, s3Client);
     }
 
     private Presentation createPresentation(UUID organizationId, UUID sessionId) {

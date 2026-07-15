@@ -10,8 +10,10 @@ import io.github.mongsil3344.qnow.presentation.infrastructure.web.dto.PdfUrlResp
 import io.github.mongsil3344.qnow.presentation.infrastructure.web.dto.UploadCompleteRequest;
 import io.github.mongsil3344.qnow.presentation.infrastructure.web.dto.UploadUrlRequest;
 import io.github.mongsil3344.qnow.presentation.infrastructure.web.dto.UploadUrlResponse;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.user.api.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -80,7 +82,7 @@ public class PresentationController {
     @Operation(summary = "발표 자료 PDF 조회 URL 발급 API")
     @GetMapping("/{presentationId}/pdf")
     public ResponseEntity<PdfUrlResponse> createPdfUrl(
-            @AuthenticationPrincipal UserPrincipal principal,
+            @Parameter(hidden = true) SessionActor actor,
             @PathVariable UUID organizationId,
             @PathVariable UUID sessionId,
             @PathVariable UUID presentationId
@@ -89,7 +91,7 @@ public class PresentationController {
                 organizationId,
                 sessionId,
                 presentationId,
-                principal.id()
+                actor
         );
 
         return ResponseEntity.ok(PdfUrlResponse.from(result));

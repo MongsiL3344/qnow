@@ -11,9 +11,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,16 +31,27 @@ public class QuestionUpvote {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @Column(name = "voter_user_id", nullable = false)
+    @Column(name = "voter_user_id")
     private UUID voterUserId;
+
+    @Column(name = "voter_guest_participant_id")
+    private UUID voterGuestParticipantId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Builder
-    private QuestionUpvote(Question question, UUID voterUserId) {
-        this.question = question;
+    private QuestionUpvote(Question question, UUID voterUserId, UUID voterGuestParticipantId) {
+        this.question = Objects.requireNonNull(question);
         this.voterUserId = voterUserId;
+        this.voterGuestParticipantId = voterGuestParticipantId;
+    }
+
+    public static QuestionUpvote member(Question question, UUID voterUserId) {
+        return new QuestionUpvote(question, Objects.requireNonNull(voterUserId), null);
+    }
+
+    public static QuestionUpvote guest(Question question, UUID voterGuestParticipantId) {
+        return new QuestionUpvote(question, null, Objects.requireNonNull(voterGuestParticipantId));
     }
 
     @PrePersist

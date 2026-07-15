@@ -11,6 +11,7 @@ import io.github.mongsil3344.qnow.presentation.application.exception.Presentatio
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.UploadStatus;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import java.util.Optional;
 import java.util.UUID;
@@ -91,6 +92,35 @@ class PdfUrlServiceTest {
         assertThat(result.pdfUrl()).contains("X-Amz-Signature");
         assertThat(result.pdfUrl()).contains("response-content-type=application%2Fpdf");
         assertThat(result.contentType()).isEqualTo("application/pdf");
+    }
+
+    @Test
+    void 활성_비회원_참여자는_PDF_조회_주소를_생성할_수_있다() {
+        UUID organizationId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID presenterId = UUID.randomUUID();
+        UUID guestParticipantId = UUID.randomUUID();
+        SessionActor guest = new SessionActor.Guest(guestParticipantId, sessionId);
+        Presentation presentation = createUploadedPresentation(organizationId, sessionId, presenterId);
+
+        when(sessionQueryApi.existsSessionInOrganization(sessionId, organizationId)).thenReturn(true);
+        when(sessionQueryApi.findActiveParticipantId(sessionId, guest))
+            .thenReturn(Optional.of(guestParticipantId));
+        when(presentationRepository.findByIdAndSessionIdAndUploadStatusAndDeletedAtIsNull(
+            presentation.getId(),
+            sessionId,
+            UploadStatus.UPLOADED
+        )).thenReturn(Optional.of(presentation));
+
+        PdfUrlResult result = pdfUrlService.createPdfUrl(
+            organizationId,
+            sessionId,
+            presentation.getId(),
+            guest
+        );
+
+        assertThat(result.presentationId()).isEqualTo(presentation.getId());
+        assertThat(result.pdfUrl()).contains("X-Amz-Signature");
     }
 
     @Test

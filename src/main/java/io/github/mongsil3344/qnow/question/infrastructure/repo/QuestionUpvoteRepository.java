@@ -13,6 +13,11 @@ public interface QuestionUpvoteRepository extends JpaRepository<QuestionUpvote, 
 
     Optional<QuestionUpvote> findByQuestionIdAndVoterUserId(UUID questionId, UUID voterUserId);
 
+    Optional<QuestionUpvote> findByQuestionIdAndVoterGuestParticipantId(
+        UUID questionId,
+        UUID voterGuestParticipantId
+    );
+
     @Query("""
         select questionUpvote.question.id
         from QuestionUpvote questionUpvote
@@ -22,5 +27,16 @@ public interface QuestionUpvoteRepository extends JpaRepository<QuestionUpvote, 
     List<UUID> findUpvotedQuestionIds(
         @Param("questionIds") Collection<UUID> questionIds,
         @Param("voterUserId") UUID voterUserId
+    );
+
+    @Query("""
+        select questionUpvote.question.id
+        from QuestionUpvote questionUpvote
+        where questionUpvote.question.id in :questionIds
+            and questionUpvote.voterGuestParticipantId = :voterGuestParticipantId
+        """)
+    List<UUID> findGuestUpvotedQuestionIds(
+        @Param("questionIds") Collection<UUID> questionIds,
+        @Param("voterGuestParticipantId") UUID voterGuestParticipantId
     );
 }

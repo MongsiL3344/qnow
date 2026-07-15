@@ -10,6 +10,7 @@ import io.github.mongsil3344.qnow.presentation.application.dto.PresenterViewResu
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewClearReason;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewSnapshot;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,8 +44,9 @@ class GetPresenterViewServiceTest {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        SessionActor actor = new SessionActor.Member(userId);
         PresenterViewSnapshot empty = PresenterViewSnapshot.empty(sessionId);
-        when(accessValidator.isSessionCreator(organizationId, sessionId, userId)).thenReturn(true);
+        when(accessValidator.isSessionCreator(organizationId, sessionId, actor)).thenReturn(true);
         when(stateStore.get(sessionId)).thenReturn(empty);
 
         PresenterViewResult result = service.getPresenterView(organizationId, sessionId, userId);
@@ -58,6 +60,7 @@ class GetPresenterViewServiceTest {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        SessionActor actor = new SessionActor.Member(userId);
         UUID presentationId = UUID.randomUUID();
         PresenterViewSnapshot stale = new PresenterViewSnapshot(
             sessionId,
@@ -73,7 +76,7 @@ class GetPresenterViewServiceTest {
             11,
             Instant.parse("2026-07-13T10:21:00Z")
         );
-        when(accessValidator.isSessionCreator(organizationId, sessionId, userId)).thenReturn(false);
+        when(accessValidator.isSessionCreator(organizationId, sessionId, actor)).thenReturn(false);
         when(stateStore.get(sessionId)).thenReturn(stale);
         when(stateStore.clearPresentation(
             org.mockito.ArgumentMatchers.eq(sessionId),

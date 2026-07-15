@@ -6,12 +6,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public final class UserPrincipal implements UserDetails {
 
     @Serial
     private static final long serialVersionUID = 1L;
+    private static final List<GrantedAuthority> MEMBER_AUTHORITIES = List.of(
+        new SimpleGrantedAuthority("ROLE_MEMBER")
+    );
 
     private final UUID id;
     private final String email;
@@ -20,7 +24,7 @@ public final class UserPrincipal implements UserDetails {
     private final List<GrantedAuthority> authorities;
 
     public UserPrincipal(UUID id, String email, String nickname, String password) {
-        this(id, email, nickname, password, List.of());
+        this(id, email, nickname, password, MEMBER_AUTHORITIES);
     }
 
     public UserPrincipal(

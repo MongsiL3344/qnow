@@ -10,10 +10,12 @@ import io.github.mongsil3344.qnow.question.domain.Question;
 import io.github.mongsil3344.qnow.question.domain.QuestionUpvote;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionUpvoteRepository;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,16 +32,18 @@ public class QuestionUpvoteService {
 
     @Transactional
     public QuestionUpvoteResult upvote(UUID questionId, UUID userId) {
+        return upvote(questionId, new SessionActor.Member(userId));
+    }
+
+    @Transactional
+    public QuestionUpvoteResult upvote(UUID questionId, SessionActor actor) {
         Question question = findActiveQuestionForUpdate(questionId);
-        validateActiveParticipant(question, userId);
+        UUID participantId = requireActiveParticipant(question, actor);
 
-        validateNotQuestioner(question, userId);
+        validateNotQuestioner(question, actor, participantId);
 
-        if (questionUpvoteRepository.findByQuestionIdAndVoterUserId(questionId, userId).isEmpty()) {
-            questionUpvoteRepository.save(QuestionUpvote.builder()
-                .question(question)
-                .voterUserId(userId)
-                .build());
+        if (findQuestionUpvote(questionId, actor, participantId).isEmpty()) {
+            questionUpvoteRepository.save(createQuestionUpvote(question, actor, participantId));
             question.incrementUpvoteCount();
         }
 
@@ -48,10 +52,15 @@ public class QuestionUpvoteService {
 
     @Transactional
     public QuestionUpvoteResult cancelUpvote(UUID questionId, UUID userId) {
-        Question question = findActiveQuestionForUpdate(questionId);
-        validateActiveParticipant(question, userId);
+        return cancelUpvote(questionId, new SessionActor.Member(userId));
+    }
 
-        questionUpvoteRepository.findByQuestionIdAndVoterUserId(questionId, userId)
+    @Transactional
+    public QuestionUpvoteResult cancelUpvote(UUID questionId, SessionActor actor) {
+        Question question = findActiveQuestionForUpdate(questionId);
+        UUID participantId = requireActiveParticipant(question, actor);
+
+        findQuestionUpvote(questionId, actor, participantId)
             .ifPresent(questionUpvote -> {
                 question.decrementUpvoteCount();
                 questionUpvoteRepository.delete(questionUpvote);
@@ -66,7 +75,10 @@ public class QuestionUpvoteService {
             .orElseThrow(QuestionNotFoundException::new);
     }
 
-    private void validateActiveParticipant(Question question, UUID userId) {
+    private UUID requireActiveParticipant(
+        Question question,
+        SessionActor actor
+    ) {
         UploadedPresentationInfo presentation = presentationQueryApi
             .findUploadedPresentationById(question.getPresentationId())
             .orElseThrow(QuestionNotFoundException::new);
@@ -77,23 +89,47 @@ public class QuestionUpvoteService {
 
         sessionStatusApi.requireNotEnded(presentation.sessionId());
 
-        if (!sessionQueryApi.isActiveParticipant(presentation.sessionId(), userId)) {
-            throw new SessionParticipantRequiredException();
+        return sessionQueryApi.findActiveParticipantId(
+                presentation.sessionId(),
+                actor
+            )
+            .orElseThrow(SessionParticipantRequiredException::new);
+    }
+
+    private void validateNotQuestioner(Question question, SessionActor actor, UUID participantId) {
+        boolean selfUpvote = switch (actor) {
+            case SessionActor.Member member -> {
+                UUID questionerUserId = sessionQueryApi
+                    .findUserIdsByParticipantIds(Set.of(question.getQuestionerId()))
+                    .get(question.getQuestionerId());
+                yield member.userId().equals(questionerUserId);
+            }
+            case SessionActor.Guest ignored -> participantId.equals(question.getQuestionerId());
+        };
+
+        if (selfUpvote) {
+            throw new SelfUpvoteNotAllowedException();
         }
     }
 
-    private void validateNotQuestioner(Question question, UUID userId) {
-        UUID questionerUserId = sessionQueryApi
-            .findUserIdsByParticipantIds(Set.of(question.getQuestionerId()))
-            .get(question.getQuestionerId());
+    private Optional<QuestionUpvote> findQuestionUpvote(
+        UUID questionId,
+        SessionActor actor,
+        UUID participantId
+    ) {
+        return switch (actor) {
+            case SessionActor.Member member ->
+                questionUpvoteRepository.findByQuestionIdAndVoterUserId(questionId, member.userId());
+            case SessionActor.Guest ignored ->
+                questionUpvoteRepository.findByQuestionIdAndVoterGuestParticipantId(questionId, participantId);
+        };
+    }
 
-        if (questionerUserId == null) {
-            throw new QuestionNotFoundException();
-        }
-
-        if (userId.equals(questionerUserId)) {
-            throw new SelfUpvoteNotAllowedException();
-        }
+    private QuestionUpvote createQuestionUpvote(Question question, SessionActor actor, UUID participantId) {
+        return switch (actor) {
+            case SessionActor.Member member -> QuestionUpvote.member(question, member.userId());
+            case SessionActor.Guest ignored -> QuestionUpvote.guest(question, participantId);
+        };
     }
 
     private QuestionUpvoteResult toResult(Question question, boolean upvotedByMe) {

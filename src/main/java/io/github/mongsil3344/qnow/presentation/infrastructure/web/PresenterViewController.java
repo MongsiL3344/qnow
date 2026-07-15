@@ -5,8 +5,10 @@ import io.github.mongsil3344.qnow.presentation.application.UpdatePresenterViewSe
 import io.github.mongsil3344.qnow.presentation.application.dto.PresenterViewResult;
 import io.github.mongsil3344.qnow.presentation.infrastructure.web.dto.PresenterViewResponse;
 import io.github.mongsil3344.qnow.presentation.infrastructure.web.dto.UpdatePresenterViewRequest;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.user.api.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -32,14 +34,14 @@ public class PresenterViewController {
     @Operation(summary = "현재 발표자 화면 조회 API")
     @GetMapping
     public ResponseEntity<PresenterViewResponse> getPresenterView(
-        @AuthenticationPrincipal UserPrincipal principal,
+        @Parameter(hidden = true) SessionActor actor,
         @PathVariable UUID organizationId,
         @PathVariable UUID sessionId
     ) {
         PresenterViewResult result = getPresenterViewService.getPresenterView(
             organizationId,
             sessionId,
-            principal.id()
+            actor
         );
 
         // 레디스 스냅샷 정보 반환, 스냅샷의 값이 비워진 상태면 발표자가 보고있는 슬라이드가 없는 것임

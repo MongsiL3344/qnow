@@ -8,8 +8,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.github.mongsil3344.qnow.presentation.application.PresenterViewMetrics;
+import io.github.mongsil3344.qnow.session.api.GuestPrincipal;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
+import io.github.mongsil3344.qnow.session.api.SessionActorResolver;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.user.api.UserPrincipal;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +36,9 @@ class PresenterViewSubscriptionInterceptorTest {
     private SessionQueryApi sessionQueryApi;
 
     @Mock
+    private SessionActorResolver sessionActorResolver;
+
+    @Mock
     private PresenterViewMetrics metrics;
 
     private PresenterViewSubscriptionInterceptor interceptor;
@@ -38,7 +46,11 @@ class PresenterViewSubscriptionInterceptorTest {
 
     @BeforeEach
     void setUp() {
-        interceptor = new PresenterViewSubscriptionInterceptor(sessionQueryApi, metrics);
+        interceptor = new PresenterViewSubscriptionInterceptor(
+            sessionQueryApi,
+            sessionActorResolver,
+            metrics
+        );
         channel = mock(MessageChannel.class);
     }
 
@@ -46,12 +58,32 @@ class PresenterViewSubscriptionInterceptorTest {
     void 활성_참여자는_발표자_화면_토픽을_구독할_수_있다() {
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        UsernamePasswordAuthenticationToken authentication = authentication(userId);
+        SessionActor actor = new SessionActor.Member(userId);
         Message<byte[]> message = message(
             StompCommand.SUBSCRIBE,
             destination(sessionId),
-            authentication(userId)
+            authentication
         );
-        when(sessionQueryApi.isActiveParticipant(sessionId, userId)).thenReturn(true);
+        when(sessionActorResolver.resolve(authentication)).thenReturn(Optional.of(actor));
+        when(sessionQueryApi.isActiveParticipant(sessionId, actor)).thenReturn(true);
+
+        assertThat(interceptor.preSend(message, channel)).isSameAs(message);
+    }
+
+    @Test
+    void 활성_비회원_참여자는_발표자_화면_토픽을_구독할_수_있다() {
+        UUID sessionId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
+        UsernamePasswordAuthenticationToken authentication = guestAuthentication(sessionId, participantId);
+        SessionActor actor = new SessionActor.Guest(participantId, sessionId);
+        Message<byte[]> message = message(
+            StompCommand.SUBSCRIBE,
+            destination(sessionId),
+            authentication
+        );
+        when(sessionActorResolver.resolve(authentication)).thenReturn(Optional.of(actor));
+        when(sessionQueryApi.isActiveParticipant(sessionId, actor)).thenReturn(true);
 
         assertThat(interceptor.preSend(message, channel)).isSameAs(message);
     }
@@ -60,17 +92,20 @@ class PresenterViewSubscriptionInterceptorTest {
     void 참여자가_아니면_구독할_수_없다() {
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        UsernamePasswordAuthenticationToken authentication = authentication(userId);
+        SessionActor actor = new SessionActor.Member(userId);
         Message<byte[]> message = message(
             StompCommand.SUBSCRIBE,
             destination(sessionId),
-            authentication(userId)
+            authentication
         );
+        when(sessionActorResolver.resolve(authentication)).thenReturn(Optional.of(actor));
 
         assertThatThrownBy(() -> interceptor.preSend(message, channel))
             .isInstanceOf(AccessDeniedException.class)
             .hasMessage("Active session participant is required");
 
-        verify(sessionQueryApi).isActiveParticipant(sessionId, userId);
+        verify(sessionQueryApi).isActiveParticipant(sessionId, actor);
         verify(metrics).recordSubscriptionDenied();
     }
 
@@ -81,6 +116,7 @@ class PresenterViewSubscriptionInterceptorTest {
             destination(UUID.randomUUID()),
             null
         );
+        when(sessionActorResolver.resolve(null)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> interceptor.preSend(message, channel))
             .isInstanceOf(AccessDeniedException.class);
@@ -141,6 +177,11 @@ class PresenterViewSubscriptionInterceptorTest {
             "encoded-password"
         );
         return new UsernamePasswordAuthenticationToken(principal, principal.getPassword(), principal.getAuthorities());
+    }
+
+    private UsernamePasswordAuthenticationToken guestAuthentication(UUID sessionId, UUID participantId) {
+        GuestPrincipal principal = new GuestPrincipal(participantId, sessionId);
+        return new UsernamePasswordAuthenticationToken(principal, null, List.of());
     }
 
     private String destination(UUID sessionId) {

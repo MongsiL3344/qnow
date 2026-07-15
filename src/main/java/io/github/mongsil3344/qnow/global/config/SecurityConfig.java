@@ -3,6 +3,7 @@ package io.github.mongsil3344.qnow.global.config;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -59,7 +60,30 @@ public class SecurityConfig {
                                 "/actuator/info",
                                 "/actuator/modulith"
                         ).permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/guest/session-participations").permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/organizations/*/sessions/*/presentations",
+                                "/organizations/*/sessions/*/presentations/*/pdf",
+                                "/organizations/*/sessions/*/presenter-view",
+                                "/presentations/*/questions"
+                        ).hasAnyRole("MEMBER", "GUEST")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/organizations/*/sessions/*/participants/exit",
+                                "/presentations/*/questions"
+                        ).hasAnyRole("MEMBER", "GUEST")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/questions/*/upvote"
+                        ).hasAnyRole("MEMBER", "GUEST")
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/questions/*/upvote"
+                        ).hasAnyRole("MEMBER", "GUEST")
+                        .requestMatchers("/ws").hasAnyRole("MEMBER", "GUEST")
+                        .requestMatchers("/organizations/**", "/users/**").hasRole("MEMBER")
+                        .anyRequest().hasRole("MEMBER")
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint((request, response, authException) ->

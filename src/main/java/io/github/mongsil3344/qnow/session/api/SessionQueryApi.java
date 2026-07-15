@@ -16,7 +16,15 @@ public interface SessionQueryApi {
 
     Optional<UUID> findActiveParticipantId(UUID sessionId, UUID userId);
 
+    default boolean isActiveParticipant(UUID sessionId, SessionActor actor) {
+        return findActiveParticipantId(sessionId, actor).isPresent();
+    }
+
+    Optional<UUID> findActiveParticipantId(UUID sessionId, SessionActor actor);
+
     Optional<UUID> findOrganizationIdBySessionId(UUID sessionId);
 
     Map<UUID, UUID> findUserIdsByParticipantIds(Collection<UUID> participantIds);
+
+    Map<UUID, String> findGuestNicknamesByParticipantIds(Collection<UUID> participantIds);
 }

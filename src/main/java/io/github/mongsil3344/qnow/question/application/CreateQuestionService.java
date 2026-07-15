@@ -9,6 +9,7 @@ import io.github.mongsil3344.qnow.question.domain.Question;
 import io.github.mongsil3344.qnow.question.domain.QuestionSelection;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
 import io.github.mongsil3344.qnow.question.infrastructure.web.dto.CreateQuestionRequest.SelectionRequest;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
 import java.math.BigDecimal;
@@ -41,12 +42,36 @@ public class CreateQuestionService {
             int pageEnd,
             SelectionRequest selectionRequest
     ) {
+        createQuestion(
+            presentationId,
+            new SessionActor.Member(userId),
+            content,
+            anonymous,
+            pageStart,
+            pageEnd,
+            selectionRequest
+        );
+    }
+
+    @Transactional
+    public void createQuestion(
+            UUID presentationId,
+            SessionActor actor,
+            String content,
+            boolean anonymous,
+            int pageStart,
+            int pageEnd,
+            SelectionRequest selectionRequest
+    ) {
         UploadedPresentationInfo presentation = presentationQueryApi.findUploadedPresentationById(presentationId)
                 .orElseThrow(QuestionPresentationNotFoundException::new);
 
         sessionStatusApi.requireNotEnded(presentation.sessionId());
 
-        UUID participantId = sessionQueryApi.findActiveParticipantId(presentation.sessionId(), userId)
+        UUID participantId = sessionQueryApi.findActiveParticipantId(
+                presentation.sessionId(),
+                actor
+            )
                 .orElseThrow(SessionParticipantRequiredException::new);
 
         validatePageReference(pageStart, pageEnd, presentation.pageCount());

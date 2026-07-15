@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.mongsil3344.qnow.organization.domain.Organization;
 import io.github.mongsil3344.qnow.organization.infrastructure.repo.OrganizationRepository;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.session.api.SessionSummary;
 import io.github.mongsil3344.qnow.session.domain.Participant;
@@ -101,13 +102,40 @@ class ParticipantRepositoryTest {
     }
 
     @Test
+    void 활성_비회원_참여자는_참여자_식별자로_조회한다() {
+        User creator = saveUser();
+        Session session = saveSession(creator.getId());
+        Participant guest = participantRepository.saveAndFlush(Participant.guest("guest", session));
+        SessionActor correctSessionGuest = new SessionActor.Guest(guest.getId(), session.getId());
+        SessionActor differentSessionGuest = new SessionActor.Guest(guest.getId(), UUID.randomUUID());
+
+        assertThat(sessionQueryApi.findActiveParticipantId(session.getId(), correctSessionGuest))
+            .contains(guest.getId());
+        assertThat(sessionQueryApi.findActiveParticipantId(session.getId(), differentSessionGuest))
+            .isEmpty();
+    }
+
+    @Test
+    void 참여자_수는_회원은_유저별로_비회원은_참여자별로_계산한다() {
+        User creator = saveUser();
+        Session session = saveSession(creator.getId());
+        saveParticipant(creator.getId(), session);
+        participantRepository.saveAndFlush(Participant.guest("first-guest", session));
+        participantRepository.saveAndFlush(Participant.guest("second-guest", session));
+
+        List<SessionSummary> summaries =
+            sessionQueryApi.findSessionSummariesByOrganizationId(session.getOrganizationId());
+
+        assertThat(summaries).singleElement()
+            .extracting(SessionSummary::participantCount)
+            .isEqualTo(3L);
+    }
+
+    @Test
     void 세션_참가_코드를_저장한다() {
         User creator = saveUser();
         Session session = saveSession(creator.getId());
-        SessionParticipateCode participateCode = SessionParticipateCode.builder()
-            .session(session)
-            .code(UUID.randomUUID().toString())
-            .build();
+        SessionParticipateCode participateCode = SessionParticipateCode.create(session);
 
         entityManager.persist(participateCode);
         entityManager.flush();

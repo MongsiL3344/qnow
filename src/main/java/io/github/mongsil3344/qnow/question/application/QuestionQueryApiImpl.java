@@ -9,6 +9,7 @@ import io.github.mongsil3344.qnow.question.domain.Question;
 import io.github.mongsil3344.qnow.question.domain.QuestionSelection;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionUpvoteRepository;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -27,13 +28,20 @@ public class QuestionQueryApiImpl implements QuestionQueryApi {
 
     @Override
     @Transactional(readOnly = true)
-    public QuestionSlice findQuestions(UUID presentationId, UUID viewerUserId, QuestionListQuery query) {
+    public QuestionSlice findQuestions(
+        UUID presentationId,
+        SessionActor viewer,
+        QuestionListQuery query
+    ) {
         Slice<Question> questions = questionRepository.findAllByPresentationIdAndDeletedAtIsNull(
             presentationId,
             PageRequest.of(query.page(), query.size(), toSort(query.sort()))
         );
 
-        Set<UUID> upvotedQuestionIds = findUpvotedQuestionIds(questions, viewerUserId);
+        Set<UUID> upvotedQuestionIds = findUpvotedQuestionIds(
+            questions,
+            viewer
+        );
 
         return new QuestionSlice(
             questions.getContent().stream()
@@ -69,17 +77,29 @@ public class QuestionQueryApiImpl implements QuestionQueryApi {
         };
     }
 
-    private Set<UUID> findUpvotedQuestionIds(Slice<Question> questions, UUID viewerUserId) {
+    private Set<UUID> findUpvotedQuestionIds(
+        Slice<Question> questions,
+        SessionActor viewer
+    ) {
         if (questions.isEmpty()) {
             return Set.of();
         }
 
-        return Set.copyOf(questionUpvoteRepository.findUpvotedQuestionIds(
-            questions.getContent().stream()
-                .map(Question::getId)
-                .toList(),
-            viewerUserId
-        ));
+        var questionIds = questions.getContent().stream()
+            .map(Question::getId)
+            .toList();
+
+        return switch (viewer) {
+            case SessionActor.Member member -> Set.copyOf(
+                questionUpvoteRepository.findUpvotedQuestionIds(questionIds, member.userId())
+            );
+            case SessionActor.Guest guest -> Set.copyOf(
+                questionUpvoteRepository.findGuestUpvotedQuestionIds(
+                    questionIds,
+                    guest.participantId()
+                )
+            );
+        };
     }
 
     private QuestionSummary toSummary(Question question, boolean upvotedByMe) {

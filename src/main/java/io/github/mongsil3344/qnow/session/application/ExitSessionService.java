@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.session.application;
 
 import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
 import io.github.mongsil3344.qnow.session.application.exception.SessionNotFoundException;
 import io.github.mongsil3344.qnow.session.domain.Session;
@@ -21,19 +22,50 @@ public class ExitSessionService {
 
     @Transactional
     public void exitSession(UUID organizationId, UUID sessionId, UUID userId) {
+        exitSession(organizationId, sessionId, new SessionActor.Member(userId));
+    }
+
+    @Transactional
+    public void exitSession(
+        UUID organizationId,
+        UUID sessionId,
+        SessionActor actor
+    ) {
         Session session = sessionRepository.findByIdAndOrganizationIdForLifecycleRead(sessionId, organizationId)
             .orElseThrow(SessionNotFoundException::new);
-
-        boolean existsUserInOrganization = organizationQueryApi.existsUserInOrganization(userId, organizationId);
-        if (!existsUserInOrganization) {
-            throw new NotOrganizationMemberException();
-        }
 
         if (session.isEnded()) {
             return;
         }
 
+        switch (actor) {
+            case SessionActor.Member member -> exitMember(
+                organizationId,
+                sessionId,
+                member.userId()
+            );
+            case SessionActor.Guest guest -> exitGuest(sessionId, guest);
+        }
+    }
+
+    private void exitMember(UUID organizationId, UUID sessionId, UUID userId) {
+        boolean existsUserInOrganization = organizationQueryApi.existsUserInOrganization(userId, organizationId);
+        if (!existsUserInOrganization) {
+            throw new NotOrganizationMemberException();
+        }
+
         participantRepository.findByUserIdAndSessionIdAndDeletedAtIsNull(userId, sessionId)
             .ifPresent(participant -> participant.exit());
+    }
+
+    private void exitGuest(UUID sessionId, SessionActor.Guest guest) {
+        if (!sessionId.equals(guest.sessionId())) {
+            return;
+        }
+
+        participantRepository.findByIdAndSessionIdAndUserIdIsNullAndDeletedAtIsNull(
+            guest.participantId(),
+            sessionId
+        ).ifPresent(participant -> participant.exit());
     }
 }

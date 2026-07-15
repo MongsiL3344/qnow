@@ -5,7 +5,9 @@ import io.github.mongsil3344.qnow.session.domain.Participant;
 import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
 import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdminRequiredException;
 import io.github.mongsil3344.qnow.session.domain.Session;
+import io.github.mongsil3344.qnow.session.domain.SessionParticipateCode;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.ParticipantRepository;
+import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionParticipateCodeRepository;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
@@ -19,6 +21,7 @@ public class CreateSessionService {
 
     private final SessionRepository sessionRepository;
     private final ParticipantRepository participantRepository;
+    private final SessionParticipateCodeRepository participateCodeRepository;
     private final OrganizationQueryApi organizationQueryApi;
 
     @Transactional
@@ -46,5 +49,6 @@ public class CreateSessionService {
         Participant creatorParticipant = Participant.member(creatorId, savedSession);
 
         participantRepository.save(creatorParticipant);
+        participateCodeRepository.save(SessionParticipateCode.create(savedSession));
     }
 }

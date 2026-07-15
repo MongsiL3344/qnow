@@ -2,6 +2,7 @@ package io.github.mongsil3344.qnow.bff.application;
 
 import io.github.mongsil3344.qnow.bff.application.dto.QuestionListResult;
 import io.github.mongsil3344.qnow.bff.application.exception.InvalidQuestionListQueryException;
+import io.github.mongsil3344.qnow.bff.application.exception.QuestionListParticipantRequiredException;
 import io.github.mongsil3344.qnow.bff.application.exception.QuestionListPresentationNotFoundException;
 import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
 import io.github.mongsil3344.qnow.presentation.api.PresentationQueryApi;
@@ -11,6 +12,7 @@ import io.github.mongsil3344.qnow.question.api.QuestionQueryApi;
 import io.github.mongsil3344.qnow.question.api.QuestionSlice;
 import io.github.mongsil3344.qnow.question.api.QuestionSort;
 import io.github.mongsil3344.qnow.question.api.QuestionSummary;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.user.api.UserQueryApi;
 import java.util.List;
@@ -44,6 +46,23 @@ public class GetQuestionListService {
         int page,
         int size
     ) {
+        return getQuestions(
+            presentationId,
+            new SessionActor.Member(currentUserId),
+            sort,
+            page,
+            size
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public QuestionListResult getQuestions(
+        UUID presentationId,
+        SessionActor currentActor,
+        QuestionSort sort,
+        int page,
+        int size
+    ) {
         validatePagination(page, size);
 
         UploadedPresentationInfo presentation = presentationQueryApi.findUploadedPresentationById(presentationId)
@@ -51,11 +70,15 @@ public class GetQuestionListService {
         UUID organizationId = sessionQueryApi.findOrganizationIdBySessionId(presentation.sessionId())
             .orElseThrow(QuestionListPresentationNotFoundException::new);
 
-        organizationQueryApi.getOrganizationInfo(organizationId, currentUserId);
+        validateAccess(
+            presentation.sessionId(),
+            organizationId,
+            currentActor
+        );
 
         QuestionSlice questions = questionQueryApi.findQuestions(
             presentationId,
-            currentUserId,
+            currentActor,
             new QuestionListQuery(sort, page, size)
         );
 
@@ -76,6 +99,8 @@ public class GetQuestionListService {
         // 참여자ID -> 사용자ID 추출
         Map<UUID, UUID> userIdsByParticipantId =
             sessionQueryApi.findUserIdsByParticipantIds(participantIds);
+        Map<UUID, String> guestNicknamesByParticipantId =
+            sessionQueryApi.findGuestNicknamesByParticipantIds(participantIds);
 
         // 익명이 아닌 질문자의 아이디를 모아서 Set으로 만듦
         Set<UUID> visibleQuestionerUserIds = questions.content().stream()
@@ -93,8 +118,9 @@ public class GetQuestionListService {
             questions.content().stream()
                 .map(question -> toResult(
                     question,
-                    currentUserId,
+                    currentActor,
                     userIdsByParticipantId,
+                    guestNicknamesByParticipantId,
                     nicknamesByUserId
                 ))
                 .toList(),
@@ -102,6 +128,22 @@ public class GetQuestionListService {
             questions.size(),
             questions.hasNext()
         );
+    }
+
+    private void validateAccess(
+        UUID sessionId,
+        UUID organizationId,
+        SessionActor actor
+    ) {
+        switch (actor) {
+            case SessionActor.Member member ->
+                organizationQueryApi.getOrganizationInfo(organizationId, member.userId());
+            case SessionActor.Guest ignored -> {
+                if (sessionQueryApi.findActiveParticipantId(sessionId, actor).isEmpty()) {
+                    throw new QuestionListParticipantRequiredException();
+                }
+            }
+        }
     }
 
     private void validatePagination(int page, int size) {
@@ -112,8 +154,9 @@ public class GetQuestionListService {
 
     private QuestionListResult.QuestionResult toResult(
         QuestionSummary question,
-        UUID currentUserId,
+        SessionActor currentActor,
         Map<UUID, UUID> userIdsByParticipantId,
+        Map<UUID, String> guestNicknamesByParticipantId,
         Map<UUID, String> nicknamesByUserId
     ) {
         UUID questionerUserId = userIdsByParticipantId.get(question.questionerParticipantId());
@@ -121,9 +164,18 @@ public class GetQuestionListService {
         return new QuestionListResult.QuestionResult(
             question.id(),
             question.content(),
-            resolveQuestionerName(question, questionerUserId, nicknamesByUserId),
+            resolveQuestionerName(
+                question,
+                questionerUserId,
+                guestNicknamesByParticipantId,
+                nicknamesByUserId
+            ),
             question.anonymous(),
-            currentUserId.equals(questionerUserId),
+            isAuthoredByCurrentParticipant(
+                question,
+                currentActor,
+                questionerUserId
+            ),
             question.pageStart(),
             question.pageEnd(),
             question.selection(),
@@ -136,16 +188,32 @@ public class GetQuestionListService {
     private String resolveQuestionerName(
         QuestionSummary question,
         UUID questionerUserId,
+        Map<UUID, String> guestNicknamesByParticipantId,
         Map<UUID, String> nicknamesByUserId
     ) {
         if (question.anonymous()) {
             return ANONYMOUS_NAME;
         }
 
-        if (questionerUserId == null) {
-            return UNKNOWN_USER_NAME;
+        if (questionerUserId != null) {
+            return nicknamesByUserId.getOrDefault(questionerUserId, UNKNOWN_USER_NAME);
         }
 
-        return nicknamesByUserId.getOrDefault(questionerUserId, UNKNOWN_USER_NAME);
+        return guestNicknamesByParticipantId.getOrDefault(
+            question.questionerParticipantId(),
+            UNKNOWN_USER_NAME
+        );
+    }
+
+    private boolean isAuthoredByCurrentParticipant(
+        QuestionSummary question,
+        SessionActor currentActor,
+        UUID questionerUserId
+    ) {
+        return switch (currentActor) {
+            case SessionActor.Member member -> member.userId().equals(questionerUserId);
+            case SessionActor.Guest guest ->
+                guest.participantId().equals(question.questionerParticipantId());
+        };
     }
 }

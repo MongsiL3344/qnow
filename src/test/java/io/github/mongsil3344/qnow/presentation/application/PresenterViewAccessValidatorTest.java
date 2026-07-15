@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewParticipantRequiredException;
 import io.github.mongsil3344.qnow.session.api.SessionAccessApi;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionEndedException;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
@@ -43,8 +44,9 @@ class PresenterViewAccessValidatorTest {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        SessionActor actor = new SessionActor.Member(userId);
         when(sessionQueryApi.existsSessionInOrganization(sessionId, organizationId)).thenReturn(true);
-        when(sessionQueryApi.isActiveParticipant(sessionId, userId)).thenReturn(true);
+        when(sessionQueryApi.isActiveParticipant(sessionId, actor)).thenReturn(true);
         when(sessionAccessApi.isSessionCreator(sessionId, userId)).thenReturn(true);
 
         assertThat(validator.isSessionCreator(organizationId, sessionId, userId)).isTrue();

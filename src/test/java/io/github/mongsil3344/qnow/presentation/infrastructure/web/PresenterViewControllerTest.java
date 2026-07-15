@@ -20,6 +20,7 @@ import io.github.mongsil3344.qnow.presentation.application.exception.PresenterVi
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewSnapshot;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
+import io.github.mongsil3344.qnow.session.api.GuestPrincipal;
 import io.github.mongsil3344.qnow.session.domain.Participant;
 import io.github.mongsil3344.qnow.session.domain.Session;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.ParticipantRepository;
@@ -27,6 +28,7 @@ import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
 import io.github.mongsil3344.qnow.user.domain.User;
 import io.github.mongsil3344.qnow.user.infrastructure.repo.UserRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +36,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -102,6 +109,34 @@ class PresenterViewControllerTest {
             .andExpect(jsonPath("$.presentationId").value(fixture.presentation().getId().toString()))
             .andExpect(jsonPath("$.pageNumber").value(7))
             .andExpect(jsonPath("$.revision").value(4));
+    }
+
+    @Test
+    void 활성_비회원은_제어_권한_없이_최신_발표자_화면을_조회한다() throws Exception {
+        Fixture fixture = createFixture(false, false);
+        Participant guest = participantRepository.save(Participant.guest("guest", fixture.session()));
+        PresenterViewSnapshot snapshot = snapshot(fixture, 7, 4);
+        when(stateStore.get(fixture.session().getId())).thenReturn(snapshot);
+
+        mockMvc.perform(get(endpoint(), fixture.organization().getId(), fixture.session().getId())
+                .session(guestSession(guest, fixture.session())))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.canControl").value(false))
+            .andExpect(jsonPath("$.presentationId").value(fixture.presentation().getId().toString()))
+            .andExpect(jsonPath("$.pageNumber").value(7));
+    }
+
+    @Test
+    void 비회원은_발표자_화면을_변경할_수_없다() throws Exception {
+        Fixture fixture = createFixture(false, false);
+        Participant guest = participantRepository.save(Participant.guest("guest", fixture.session()));
+
+        mockMvc.perform(put(endpoint(), fixture.organization().getId(), fixture.session().getId())
+                .with(csrf())
+                .session(guestSession(guest, fixture.session()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody(fixture.presentation().getId(), 5)))
+            .andExpect(status().isForbidden());
     }
 
     @Test
@@ -284,6 +319,23 @@ class PresenterViewControllerTest {
             .andExpect(status().isOk())
             .andReturn();
         return (MockHttpSession) result.getRequest().getSession(false);
+    }
+
+    private MockHttpSession guestSession(Participant participant, Session session) {
+        MockHttpSession httpSession = new MockHttpSession();
+        GuestPrincipal principal = new GuestPrincipal(participant.getId(), session.getId());
+        UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
+            principal,
+            null,
+            List.of(new SimpleGrantedAuthority("ROLE_GUEST"))
+        );
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authentication);
+        httpSession.setAttribute(
+            HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+            securityContext
+        );
+        return httpSession;
     }
 
     private PresenterViewSnapshot snapshot(Fixture fixture, int pageNumber, long revision) {

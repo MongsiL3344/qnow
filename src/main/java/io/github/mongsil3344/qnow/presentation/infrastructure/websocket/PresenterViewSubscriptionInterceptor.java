@@ -1,9 +1,9 @@
 package io.github.mongsil3344.qnow.presentation.infrastructure.websocket;
 
 import io.github.mongsil3344.qnow.presentation.application.PresenterViewMetrics;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
+import io.github.mongsil3344.qnow.session.api.SessionActorResolver;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
-import io.github.mongsil3344.qnow.user.api.UserPrincipal;
-import java.security.Principal;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,7 +14,6 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 // 웹소켓으로 들어오는 메세지를 가로채서 먼저 검사
@@ -26,10 +25,16 @@ public class PresenterViewSubscriptionInterceptor implements ChannelInterceptor 
     );
 
     private final SessionQueryApi sessionQueryApi;
+    private final SessionActorResolver sessionActorResolver;
     private final PresenterViewMetrics metrics;
 
-    public PresenterViewSubscriptionInterceptor(SessionQueryApi sessionQueryApi, PresenterViewMetrics metrics) {
+    public PresenterViewSubscriptionInterceptor(
+        SessionQueryApi sessionQueryApi,
+        SessionActorResolver sessionActorResolver,
+        PresenterViewMetrics metrics
+    ) {
         this.sessionQueryApi = sessionQueryApi;
+        this.sessionActorResolver = sessionActorResolver;
         this.metrics = metrics;
     }
 
@@ -66,18 +71,16 @@ public class PresenterViewSubscriptionInterceptor implements ChannelInterceptor 
             return;
         }
 
-        UserPrincipal userPrincipal = extractUserPrincipal(accessor.getUser());
-        if (userPrincipal == null || !sessionQueryApi.isActiveParticipant(sessionId, userPrincipal.id())) {
+        var resolvedActor = sessionActorResolver.resolve(accessor.getUser());
+        if (resolvedActor.isEmpty()) {
+            deny("Active session participant is required");
+            return;
+        }
+
+        SessionActor actor = resolvedActor.orElseThrow();
+        if (!sessionQueryApi.isActiveParticipant(sessionId, actor)) {
             deny("Active session participant is required");
         }
-    }
-
-    private UserPrincipal extractUserPrincipal(Principal principal) {
-        if (principal instanceof Authentication authentication
-            && authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
-            return userPrincipal;
-        }
-        return null;
     }
 
     private void deny(String reason) {

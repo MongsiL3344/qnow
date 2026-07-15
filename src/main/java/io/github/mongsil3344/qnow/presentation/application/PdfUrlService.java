@@ -8,6 +8,7 @@ import io.github.mongsil3344.qnow.presentation.application.exception.Presentatio
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.UploadStatus;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import java.time.Duration;
 import java.time.Instant;
@@ -49,11 +50,26 @@ public class PdfUrlService {
 
     @Transactional(readOnly = true)
     public PdfUrlResult createPdfUrl(UUID organizationId, UUID sessionId, UUID presentationId, UUID userId) {
+        return createPdfUrl(
+            organizationId,
+            sessionId,
+            presentationId,
+            new SessionActor.Member(userId)
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public PdfUrlResult createPdfUrl(
+            UUID organizationId,
+            UUID sessionId,
+            UUID presentationId,
+            SessionActor actor
+    ) {
         if (!StringUtils.hasText(bucket)) {
             throw new IllegalStateException("S3 bucket is not configured");
         }
 
-        validateAccessPermission(organizationId, sessionId, userId);
+        validateAccessPermission(organizationId, sessionId, actor);
 
         Presentation presentation = presentationRepository
                 .findByIdAndSessionIdAndUploadStatusAndDeletedAtIsNull(
@@ -82,15 +98,32 @@ public class PdfUrlService {
         );
     }
 
-    private void validateAccessPermission(UUID organizationId, UUID sessionId, UUID userId) {
-        boolean existsUserInOrganization = organizationQueryApi.existsUserInOrganization(userId, organizationId);
-        if (!existsUserInOrganization) {
-            throw new PresentationAccessForbiddenException();
+    private void validateAccessPermission(
+        UUID organizationId,
+        UUID sessionId,
+        SessionActor actor
+    ) {
+        if (actor instanceof SessionActor.Member member) {
+            boolean existsUserInOrganization = organizationQueryApi.existsUserInOrganization(
+                member.userId(),
+                organizationId
+            );
+            if (!existsUserInOrganization) {
+                throw new PresentationAccessForbiddenException();
+            }
         }
 
         boolean existsSessionInOrganization = sessionQueryApi.existsSessionInOrganization(sessionId, organizationId);
         if (!existsSessionInOrganization) {
             throw new PresentationSessionNotFoundException();
+        }
+
+        if (actor instanceof SessionActor.Member) {
+            return;
+        }
+
+        if (sessionQueryApi.findActiveParticipantId(sessionId, actor).isEmpty()) {
+            throw new PresentationAccessForbiddenException();
         }
     }
 }

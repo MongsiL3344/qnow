@@ -1,8 +1,10 @@
 package io.github.mongsil3344.qnow.global.error;
 
 import io.github.mongsil3344.qnow.bff.application.exception.SessionPresentationNotFoundException;
+import io.github.mongsil3344.qnow.bff.application.exception.SessionPresentationParticipantRequiredException;
 import io.github.mongsil3344.qnow.bff.application.exception.InvalidQuestionListQueryException;
 import io.github.mongsil3344.qnow.bff.application.exception.QuestionListPresentationNotFoundException;
+import io.github.mongsil3344.qnow.bff.application.exception.QuestionListParticipantRequiredException;
 import io.github.mongsil3344.qnow.organization.application.exception.DuplicateNameException;
 import io.github.mongsil3344.qnow.organization.application.exception.AlreadyOrganizationMemberException;
 import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationPasswordException;
@@ -31,6 +33,7 @@ import io.github.mongsil3344.qnow.session.application.exception.AlreadySessionPa
 import io.github.mongsil3344.qnow.session.application.exception.NotOrganizationMemberException;
 import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdminRequiredException;
 import io.github.mongsil3344.qnow.session.application.exception.SessionNotFoundException;
+import io.github.mongsil3344.qnow.session.application.exception.SessionParticipateCodeNotFoundException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateEmailException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -141,6 +144,15 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("ALREADY_SESSION_PARTICIPANT", e.getMessage()));
     }
 
+    @ExceptionHandler(SessionParticipateCodeNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleSessionParticipateCodeNotFound(
+        SessionParticipateCodeNotFoundException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(new ErrorResponse("SESSION_PARTICIPATE_CODE_NOT_FOUND", e.getMessage()));
+    }
+
     @ExceptionHandler(InvalidUploadObjectKeyException.class)
     public ResponseEntity<ErrorResponse> handleInvalidUploadObjectKey(InvalidUploadObjectKeyException e) {
         return ResponseEntity
@@ -229,6 +241,15 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));
     }
 
+    @ExceptionHandler(SessionPresentationParticipantRequiredException.class)
+    public ResponseEntity<ErrorResponse> handleSessionPresentationParticipantRequired(
+        SessionPresentationParticipantRequiredException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("SESSION_PARTICIPANT_REQUIRED", e.getMessage()));
+    }
+
     @ExceptionHandler(QuestionListPresentationNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleQuestionListPresentationNotFound(
         QuestionListPresentationNotFoundException e
@@ -236,6 +257,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
             .body(new ErrorResponse("PRESENTATION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(QuestionListParticipantRequiredException.class)
+    public ResponseEntity<ErrorResponse> handleQuestionListParticipantRequired(
+        QuestionListParticipantRequiredException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("SESSION_PARTICIPANT_REQUIRED", e.getMessage()));
     }
 
     @ExceptionHandler(InvalidQuestionListQueryException.class)

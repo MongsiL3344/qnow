@@ -17,6 +17,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
 
     Optional<Participant> findByUserIdAndSessionIdAndDeletedAtIsNull(UUID userId, UUID sessionId);
 
+    Optional<Participant> findByIdAndSessionIdAndUserIdIsNullAndDeletedAtIsNull(UUID id, UUID sessionId);
+
     @Query("""
         select case when count(p) > 0 then true else false end
         from Participant p
@@ -46,7 +48,25 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
     );
 
     @Query("""
-        select p.session.id as sessionId, count(distinct p.userId) as participantCount
+        select p.id
+        from Participant p
+        where p.session.id = :sessionId
+            and p.id = :participantId
+            and p.userId is null
+            and p.guestNickname is not null
+            and p.deletedAt is null
+            and p.session.deletedAt is null
+            and p.session.endAt is null
+        """)
+    Optional<UUID> findActiveGuestParticipantId(
+        @Param("sessionId") UUID sessionId,
+        @Param("participantId") UUID participantId
+    );
+
+    @Query("""
+        select p.session.id as sessionId,
+            count(distinct p.userId)
+                + sum(case when p.userId is null then 1 else 0 end) as participantCount
         from Participant p
         where p.session.id in :sessionIds
             and (
@@ -73,8 +93,20 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
         select p.id as participantId, p.userId as userId
         from Participant p
         where p.id in :participantIds
+            and p.userId is not null
         """)
     List<ParticipantUserId> findUserIdsByParticipantIds(
+        @Param("participantIds") Collection<UUID> participantIds
+    );
+
+    @Query("""
+        select p.id as participantId, p.guestNickname as guestNickname
+        from Participant p
+        where p.id in :participantIds
+            and p.userId is null
+            and p.guestNickname is not null
+        """)
+    List<ParticipantGuestNickname> findGuestNicknamesByParticipantIds(
         @Param("participantIds") Collection<UUID> participantIds
     );
 
@@ -88,5 +120,11 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
         UUID getParticipantId();
 
         UUID getUserId();
+    }
+
+    interface ParticipantGuestNickname {
+        UUID getParticipantId();
+
+        String getGuestNickname();
     }
 }

@@ -64,6 +64,14 @@ public class Participant {
         return new Participant(guestNickname, session);
     }
 
+    public boolean isMember() {
+        return userId != null;
+    }
+
+    public boolean isGuest() {
+        return guestNickname != null;
+    }
+
     public void exit() {
         exit(Instant.now());
     }

@@ -10,11 +10,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,6 +23,11 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "session_participate_codes")
 public class SessionParticipateCode {
+
+    private static final String CODE_CHARACTERS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    private static final int CODE_GROUP_LENGTH = 4;
+    private static final int FORMATTED_CODE_LENGTH = 9;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -41,10 +46,13 @@ public class SessionParticipateCode {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    @Builder
-    private SessionParticipateCode(Session session, String code) {
-        this.session = session;
-        this.code = code;
+    private SessionParticipateCode(Session session) {
+        this.session = Objects.requireNonNull(session);
+        this.code = generateCode();
+    }
+
+    public static SessionParticipateCode create(Session session) {
+        return new SessionParticipateCode(session);
     }
 
     public void delete() {
@@ -55,6 +63,21 @@ public class SessionParticipateCode {
         if (this.deletedAt == null) {
             this.deletedAt = Objects.requireNonNull(deletedAt);
         }
+    }
+
+    private static String generateCode() {
+        char[] code = new char[FORMATTED_CODE_LENGTH];
+
+        for (int index = 0; index < code.length; index++) {
+            if (index == CODE_GROUP_LENGTH) {
+                code[index] = '-';
+                continue;
+            }
+
+            code[index] = CODE_CHARACTERS.charAt(SECURE_RANDOM.nextInt(CODE_CHARACTERS.length()));
+        }
+
+        return new String(code);
     }
 
     @PrePersist

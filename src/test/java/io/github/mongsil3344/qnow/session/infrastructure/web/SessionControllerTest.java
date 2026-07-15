@@ -14,6 +14,7 @@ import io.github.mongsil3344.qnow.organization.infrastructure.repo.UserGroupRepo
 import io.github.mongsil3344.qnow.session.domain.Participant;
 import io.github.mongsil3344.qnow.session.domain.Session;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.ParticipantRepository;
+import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionParticipateCodeRepository;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.SessionRepository;
 import io.github.mongsil3344.qnow.user.domain.User;
 import io.github.mongsil3344.qnow.user.infrastructure.repo.UserRepository;
@@ -50,6 +51,9 @@ class SessionControllerTest {
 
     @Autowired
     private ParticipantRepository participantRepository;
+
+    @Autowired
+    private SessionParticipateCodeRepository participateCodeRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -99,6 +103,8 @@ class SessionControllerTest {
             creator.getId(),
             createdSession.getId()
         )).isTrue();
+        assertThat(participateCodeRepository.findActiveBySessionId(createdSession.getId()))
+            .isPresent();
     }
 
     @Test

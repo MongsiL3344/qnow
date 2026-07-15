@@ -5,6 +5,7 @@ import io.github.mongsil3344.qnow.presentation.domain.PresenterViewClearReason;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewSnapshot;
 import io.github.mongsil3344.qnow.presentation.domain.UploadStatus;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -21,8 +22,21 @@ public class GetPresenterViewService {
 
     @Transactional
     public PresenterViewResult getPresenterView(UUID organizationId, UUID sessionId, UUID userId) {
+        return getPresenterView(
+            organizationId,
+            sessionId,
+            new SessionActor.Member(userId)
+        );
+    }
+
+    @Transactional
+    public PresenterViewResult getPresenterView(
+        UUID organizationId,
+        UUID sessionId,
+        SessionActor actor
+    ) {
         // 세션 Host만 컨트롤 가능 (Host면 true 반환)
-        boolean canControl = accessValidator.isSessionCreator(organizationId, sessionId, userId);
+        boolean canControl = accessValidator.isSessionCreator(organizationId, sessionId, actor);
 
         // 해당 세션의 Redis 스냅샷 객체를 조회
         PresenterViewSnapshot snapshot = stateStore.get(sessionId);

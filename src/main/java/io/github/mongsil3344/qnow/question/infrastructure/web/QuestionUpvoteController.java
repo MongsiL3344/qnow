@@ -2,13 +2,13 @@ package io.github.mongsil3344.qnow.question.infrastructure.web;
 
 import io.github.mongsil3344.qnow.question.application.QuestionUpvoteService;
 import io.github.mongsil3344.qnow.question.infrastructure.web.dto.QuestionUpvoteResponse;
-import io.github.mongsil3344.qnow.user.api.UserPrincipal;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -26,22 +26,28 @@ public class QuestionUpvoteController {
     @Operation(summary = "질문 공감 등록 API")
     @PutMapping
     public ResponseEntity<QuestionUpvoteResponse> upvote(
-        @AuthenticationPrincipal UserPrincipal principal,
+        @Parameter(hidden = true) SessionActor actor,
         @PathVariable UUID questionId
     ) {
         return ResponseEntity.ok(
-            QuestionUpvoteResponse.from(questionUpvoteService.upvote(questionId, principal.id()))
+            QuestionUpvoteResponse.from(questionUpvoteService.upvote(
+                questionId,
+                actor
+            ))
         );
     }
 
     @Operation(summary = "질문 공감 취소 API")
     @DeleteMapping
     public ResponseEntity<QuestionUpvoteResponse> cancelUpvote(
-        @AuthenticationPrincipal UserPrincipal principal,
+        @Parameter(hidden = true) SessionActor actor,
         @PathVariable UUID questionId
     ) {
         return ResponseEntity.ok(
-            QuestionUpvoteResponse.from(questionUpvoteService.cancelUpvote(questionId, principal.id()))
+            QuestionUpvoteResponse.from(questionUpvoteService.cancelUpvote(
+                questionId,
+                actor
+            ))
         );
     }
 }

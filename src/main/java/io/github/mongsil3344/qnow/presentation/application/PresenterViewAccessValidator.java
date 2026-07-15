@@ -3,6 +3,7 @@ package io.github.mongsil3344.qnow.presentation.application;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewParticipantRequiredException;
 import io.github.mongsil3344.qnow.session.api.SessionAccessApi;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
 import java.util.UUID;
@@ -23,16 +24,29 @@ public class PresenterViewAccessValidator {
         UUID sessionId,
         UUID userId
     ) {
+        return isSessionCreator(
+            organizationId,
+            sessionId,
+            new SessionActor.Member(userId)
+        );
+    }
+
+    public boolean isSessionCreator(
+        UUID organizationId,
+        UUID sessionId,
+        SessionActor actor
+    ) {
         if (!sessionQueryApi.existsSessionInOrganization(sessionId, organizationId)) {
             throw new PresentationSessionNotFoundException();
         }
 
         sessionStatusApi.requireNotEnded(sessionId);
 
-        if (!sessionQueryApi.isActiveParticipant(sessionId, userId)) {
+        if (!sessionQueryApi.isActiveParticipant(sessionId, actor)) {
             throw new PresenterViewParticipantRequiredException();
         }
 
-        return sessionAccessApi.isSessionCreator(sessionId, userId);
+        return actor instanceof SessionActor.Member member
+            && sessionAccessApi.isSessionCreator(sessionId, member.userId());
     }
 }

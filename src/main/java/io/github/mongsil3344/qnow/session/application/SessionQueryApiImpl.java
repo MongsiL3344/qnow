@@ -1,6 +1,7 @@
 package io.github.mongsil3344.qnow.session.application;
 
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionSummary;
 import io.github.mongsil3344.qnow.session.domain.Session;
 import io.github.mongsil3344.qnow.session.infrastructure.repo.ParticipantRepository;
@@ -67,6 +68,18 @@ public class SessionQueryApiImpl implements SessionQueryApi {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<UUID> findActiveParticipantId(UUID sessionId, SessionActor actor) {
+        return switch (actor) {
+            case SessionActor.Member member ->
+                participantRepository.findActiveParticipantId(sessionId, member.userId());
+            case SessionActor.Guest guest when sessionId.equals(guest.sessionId()) ->
+                participantRepository.findActiveGuestParticipantId(sessionId, guest.participantId());
+            case SessionActor.Guest ignored -> Optional.empty();
+        };
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<UUID> findOrganizationIdBySessionId(UUID sessionId) {
         return sessionRepository.findOrganizationIdBySessionId(sessionId);
     }
@@ -82,6 +95,20 @@ public class SessionQueryApiImpl implements SessionQueryApi {
             .collect(Collectors.toMap(
                 ParticipantRepository.ParticipantUserId::getParticipantId,
                 ParticipantRepository.ParticipantUserId::getUserId
+            ));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<UUID, String> findGuestNicknamesByParticipantIds(Collection<UUID> participantIds) {
+        if (participantIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return participantRepository.findGuestNicknamesByParticipantIds(participantIds).stream()
+            .collect(Collectors.toMap(
+                ParticipantRepository.ParticipantGuestNickname::getParticipantId,
+                ParticipantRepository.ParticipantGuestNickname::getGuestNickname
             ));
     }
 

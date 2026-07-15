@@ -2,9 +2,11 @@ package io.github.mongsil3344.qnow.bff.application;
 
 import io.github.mongsil3344.qnow.bff.application.dto.SessionPresentationListResult;
 import io.github.mongsil3344.qnow.bff.application.exception.SessionPresentationNotFoundException;
+import io.github.mongsil3344.qnow.bff.application.exception.SessionPresentationParticipantRequiredException;
 import io.github.mongsil3344.qnow.organization.api.OrganizationQueryApi;
 import io.github.mongsil3344.qnow.presentation.api.PresentationQueryApi;
 import io.github.mongsil3344.qnow.presentation.api.SessionPresentationSummary;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.user.api.UserQueryApi;
 import java.util.List;
@@ -33,8 +35,21 @@ public class GetSessionPresentationListService {
         UUID sessionId,
         UUID userId
     ) {
-        organizationQueryApi.getOrganizationInfo(organizationId, userId);
+        return getSessionPresentations(
+            organizationId,
+            sessionId,
+            new SessionActor.Member(userId)
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public SessionPresentationListResult getSessionPresentations(
+        UUID organizationId,
+        UUID sessionId,
+        SessionActor actor
+    ) {
         validateSessionInOrganization(sessionId, organizationId);
+        validateAccess(sessionId, organizationId, actor);
 
         List<SessionPresentationSummary> presentations =
             presentationQueryApi.findUploadedPresentationSummariesBySessionId(sessionId);
@@ -52,7 +67,7 @@ public class GetSessionPresentationListService {
                     presentation.title(),
                     presenterNames.getOrDefault(presentation.presenterId(), UNKNOWN_USER_NAME),
                     presentation.thumbnailUrl(),
-                    presentation.presenterId().equals(userId)
+                    canDeletePresentation(actor, presentation.presenterId())
                 ))
                 .toList()
         );
@@ -62,6 +77,27 @@ public class GetSessionPresentationListService {
         if (!sessionQueryApi.existsSessionInOrganization(sessionId, organizationId)) {
             throw new SessionPresentationNotFoundException();
         }
+    }
+
+    private void validateAccess(
+        UUID sessionId,
+        UUID organizationId,
+        SessionActor actor
+    ) {
+        switch (actor) {
+            case SessionActor.Member member ->
+                organizationQueryApi.getOrganizationInfo(organizationId, member.userId());
+            case SessionActor.Guest ignored -> {
+                if (sessionQueryApi.findActiveParticipantId(sessionId, actor).isEmpty()) {
+                    throw new SessionPresentationParticipantRequiredException();
+                }
+            }
+        }
+    }
+
+    private boolean canDeletePresentation(SessionActor actor, UUID presenterId) {
+        return actor instanceof SessionActor.Member member
+            && presenterId.equals(member.userId());
     }
 
     private Map<UUID, String> getPresenterNames(List<SessionPresentationSummary> presentations) {

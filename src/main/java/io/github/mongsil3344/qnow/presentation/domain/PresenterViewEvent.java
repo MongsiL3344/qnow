@@ -9,7 +9,7 @@ public record PresenterViewEvent(
     UUID sessionId,
     UUID presentationId,
     Integer pageNumber,
-    long revision,
+    long sequence,
     Instant updatedAt,
     PresenterViewClearReason reason
 ) {
@@ -18,8 +18,8 @@ public record PresenterViewEvent(
         Objects.requireNonNull(type);
         Objects.requireNonNull(sessionId);
         Objects.requireNonNull(updatedAt);
-        if (revision < 1) {
-            throw new IllegalArgumentException("event revision must be positive");
+        if (sequence < 1) {
+            throw new IllegalArgumentException("event sequence must be positive");
         }
         if ((presentationId == null) != (pageNumber == null)) {
             throw new IllegalArgumentException("presentationId and pageNumber must both be present or absent");
@@ -35,6 +35,6 @@ public record PresenterViewEvent(
     }
 
     public PresenterViewSnapshot toSnapshot() {
-        return new PresenterViewSnapshot(sessionId, presentationId, pageNumber, revision, updatedAt);
+        return new PresenterViewSnapshot(sessionId, presentationId, pageNumber, sequence, updatedAt);
     }
 }

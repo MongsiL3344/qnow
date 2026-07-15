@@ -28,7 +28,7 @@ public class RedisPresenterViewStateStore implements PresenterViewStateStore {
     private static final List<Object> HASH_FIELDS = List.of(
         "presentationId",
         "pageNumber",
-        "revision",
+        "sequence",
         "updatedAt"
     );
 
@@ -74,20 +74,20 @@ public class RedisPresenterViewStateStore implements PresenterViewStateStore {
             }
 
             // multiGet()으로 가져온 객체의 2번 인덱스(3번쨰 필드)로 접근함
-            Object revisionValue = values.get(2);
+            Object sequenceValue = values.get(2);
 
-            if (revisionValue == null) {
+            if (sequenceValue == null) {
                 return PresenterViewSnapshot.empty(sessionId);
             }
 
             // get(int index)로 값 꺼냄
             UUID presentationId = parseUuid(values.get(0));
             Integer pageNumber = parseInteger(values.get(1));
-            long revision = Long.parseLong(revisionValue.toString());
+            long sequence = Long.parseLong(sequenceValue.toString());
             Instant updatedAt = values.get(3) == null ? null : Instant.parse(values.get(3).toString());
 
             // 객체 반환
-            return new PresenterViewSnapshot(sessionId, presentationId, pageNumber, revision, updatedAt);
+            return new PresenterViewSnapshot(sessionId, presentationId, pageNumber, sequence, updatedAt);
         } catch (RuntimeException exception) {
             throw unavailable(exception);
         }
@@ -103,14 +103,14 @@ public class RedisPresenterViewStateStore implements PresenterViewStateStore {
         try {
             // 루아 스크립트 실행해서 결과(변경여부, event 객체)를 String으로 받아옴
             String result = redisTemplate.execute(
-                UPDATE_SCRIPT,
-                List.of(key(sessionId)),
-                presentationId.toString(),
-                Integer.toString(pageNumber),
-                updatedAt.toString(),
-                Long.toString(ttl.toMillis()),
-                channel,
-                sessionId.toString()
+                UPDATE_SCRIPT,                  // 실행할 스크립트
+                List.of(key(sessionId)),        // List<K> Keys
+                presentationId.toString(),      // ARGV[1]
+                Integer.toString(pageNumber),   // ARGV[2]
+                updatedAt.toString(),           // ARGV[3]
+                Long.toString(ttl.toMillis()),  // ARGV[4]
+                channel,                        // ARGV[5]
+                sessionId.toString()            // ARGV[6]
             );
             if (!StringUtils.hasText(result)) {
                 throw new IllegalStateException("Redis update script returned no result");

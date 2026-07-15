@@ -9,7 +9,7 @@ public record PresenterViewResult(
     UUID sessionId,
     UUID presentationId,
     Integer pageNumber,
-    long revision,
+    long sequence,
     Instant updatedAt
 ) {
 
@@ -19,7 +19,7 @@ public record PresenterViewResult(
             snapshot.sessionId(),
             snapshot.presentationId(),
             snapshot.pageNumber(),
-            snapshot.revision(),
+            snapshot.sequence(),
             snapshot.updatedAt()
         );
     }

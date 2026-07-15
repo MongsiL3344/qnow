@@ -147,7 +147,7 @@ class UpdatePresenterViewServiceTest {
     }
 
     @Test
-    void 같은_위치로_변경하면_기존_리비전을_반환한다() {
+    void 같은_위치로_변경하면_기존_시퀀스를_반환한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -179,7 +179,7 @@ class UpdatePresenterViewServiceTest {
             userId,
             presentation.getId(),
             3
-        ).revision()).isEqualTo(9);
+        ).sequence()).isEqualTo(9);
     }
 
     private Presentation createPresentation(UUID sessionId, UUID presenterId, int pageCount) {

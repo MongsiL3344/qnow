@@ -56,7 +56,7 @@ class GetPresenterViewServiceTest {
     }
 
     @Test
-    void 삭제된_발표자료의_오래된_상태는_리비전이_있는_툼스톤으로_대체한다() {
+    void 삭제된_발표자료의_오래된_상태는_시퀀스가_있는_툼스톤으로_대체한다() {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();

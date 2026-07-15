@@ -9,7 +9,7 @@ public record PresenterViewResponse(
     UUID sessionId,
     UUID presentationId,
     Integer pageNumber,
-    long revision,
+    long sequence,
     Instant updatedAt
 ) {
 
@@ -19,7 +19,7 @@ public record PresenterViewResponse(
             result.sessionId(),
             result.presentationId(),
             result.pageNumber(),
-            result.revision(),
+            result.sequence(),
             result.updatedAt()
         );
     }

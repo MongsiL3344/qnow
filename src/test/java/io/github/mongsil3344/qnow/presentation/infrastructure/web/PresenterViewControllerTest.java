@@ -92,7 +92,7 @@ class PresenterViewControllerTest {
             .andExpect(jsonPath("$.sessionId").value(fixture.session().getId().toString()))
             .andExpect(jsonPath("$.presentationId").doesNotExist())
             .andExpect(jsonPath("$.pageNumber").doesNotExist())
-            .andExpect(jsonPath("$.revision").value(0))
+            .andExpect(jsonPath("$.sequence").value(0))
             .andExpect(jsonPath("$.updatedAt").doesNotExist());
     }
 
@@ -108,7 +108,7 @@ class PresenterViewControllerTest {
             .andExpect(jsonPath("$.canControl").value(false))
             .andExpect(jsonPath("$.presentationId").value(fixture.presentation().getId().toString()))
             .andExpect(jsonPath("$.pageNumber").value(7))
-            .andExpect(jsonPath("$.revision").value(4));
+            .andExpect(jsonPath("$.sequence").value(4));
     }
 
     @Test
@@ -178,7 +178,7 @@ class PresenterViewControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.canControl").value(true))
             .andExpect(jsonPath("$.pageNumber").value(5))
-            .andExpect(jsonPath("$.revision").value(1));
+            .andExpect(jsonPath("$.sequence").value(1));
     }
 
     @Test
@@ -338,12 +338,12 @@ class PresenterViewControllerTest {
         return httpSession;
     }
 
-    private PresenterViewSnapshot snapshot(Fixture fixture, int pageNumber, long revision) {
+    private PresenterViewSnapshot snapshot(Fixture fixture, int pageNumber, long sequence) {
         return new PresenterViewSnapshot(
             fixture.session().getId(),
             fixture.presentation().getId(),
             pageNumber,
-            revision,
+            sequence,
             Instant.parse("2026-07-13T10:20:30Z")
         );
     }

@@ -8,7 +8,7 @@ public record PresenterViewSnapshot(
     UUID sessionId,
     UUID presentationId,
     Integer pageNumber,
-    long revision,
+    long sequence,
     Instant updatedAt
 ) {
 
@@ -20,14 +20,14 @@ public record PresenterViewSnapshot(
         if (pageNumber != null && pageNumber < 1) {
             throw new IllegalArgumentException("pageNumber must be positive");
         }
-        if (revision < 0) {
-            throw new IllegalArgumentException("revision must not be negative");
+        if (sequence < 0) {
+            throw new IllegalArgumentException("sequence must not be negative");
         }
-        if (revision == 0 && (presentationId != null || updatedAt != null)) {
-            throw new IllegalArgumentException("revision zero is reserved for an empty snapshot");
+        if (sequence == 0 && (presentationId != null || updatedAt != null)) {
+            throw new IllegalArgumentException("sequence zero is reserved for an empty snapshot");
         }
-        if (revision > 0 && updatedAt == null) {
-            throw new IllegalArgumentException("revisioned snapshot requires updatedAt");
+        if (sequence > 0 && updatedAt == null) {
+            throw new IllegalArgumentException("sequenced snapshot requires updatedAt");
         }
     }
 

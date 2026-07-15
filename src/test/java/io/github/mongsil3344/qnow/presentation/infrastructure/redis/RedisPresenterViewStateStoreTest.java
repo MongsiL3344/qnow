@@ -83,7 +83,7 @@ class RedisPresenterViewStateStoreTest {
     }
 
     @Test
-    void 첫_변경은_스냅샷을_저장하고_TTL을_갱신하며_같은_리비전을_발행한다() throws Exception {
+    void 첫_변경은_스냅샷을_저장하고_TTL을_갱신하며_같은_시퀀스를_발행한다() throws Exception {
         UUID sessionId = UUID.randomUUID();
         UUID presentationId = UUID.randomUUID();
         Instant updatedAt = Instant.parse("2026-07-13T10:20:30Z");
@@ -111,7 +111,7 @@ class RedisPresenterViewStateStoreTest {
     }
 
     @Test
-    void 같은_위치로_변경하면_아무_작업도_하지_않고_발행_없이_리비전을_유지한다() throws Exception {
+    void 같은_위치로_변경하면_TTL만_갱신하고_발행_없이_시퀀스를_유지한다() throws Exception {
         UUID sessionId = UUID.randomUUID();
         UUID presentationId = UUID.randomUUID();
         Instant firstUpdate = Instant.parse("2026-07-13T10:20:30Z");
@@ -127,14 +127,14 @@ class RedisPresenterViewStateStoreTest {
 
             assertThat(duplicate.changed()).isFalse();
             assertThat(duplicate.snapshot()).isEqualTo(first.snapshot());
-            assertThat(duplicate.snapshot().revision()).isEqualTo(1);
+            assertThat(duplicate.snapshot().sequence()).isEqualTo(1);
             assertThat(subscription.latch().await(300, TimeUnit.MILLISECONDS)).isFalse();
             assertThat(subscription.payloads()).isEmpty();
         }
     }
 
     @Test
-    void 동시_변경은_서로_다르고_단조_증가하는_리비전을_받는다() throws Exception {
+    void 동시_변경은_서로_다르고_단조_증가하는_시퀀스를_받는다() throws Exception {
         UUID sessionId = UUID.randomUUID();
         UUID presentationId = UUID.randomUUID();
         Instant baseTime = Instant.parse("2026-07-13T10:20:30Z");
@@ -152,22 +152,22 @@ class RedisPresenterViewStateStoreTest {
                 )));
             }
 
-            List<Long> revisions = new ArrayList<>();
+            List<Long> sequences = new ArrayList<>();
             for (Future<PresenterViewUpdateResult> future : futures) {
-                revisions.add(future.get(5, TimeUnit.SECONDS).snapshot().revision());
+                sequences.add(future.get(5, TimeUnit.SECONDS).snapshot().sequence());
             }
 
-            assertThat(revisions).containsExactlyInAnyOrderElementsOf(
+            assertThat(sequences).containsExactlyInAnyOrderElementsOf(
                 java.util.stream.LongStream.rangeClosed(1, 20).boxed().toList()
             );
-            assertThat(stateStore.get(sessionId).revision()).isEqualTo(20);
+            assertThat(stateStore.get(sessionId).sequence()).isEqualTo(20);
         } finally {
             executor.shutdownNow();
         }
     }
 
     @Test
-    void 현재_발표자료를_초기화하면_리비전이_있는_툼스톤을_남긴다() throws Exception {
+    void 현재_발표자료를_초기화하면_시퀀스가_있는_툼스톤을_남긴다() throws Exception {
         UUID sessionId = UUID.randomUUID();
         UUID presentationId = UUID.randomUUID();
         Instant updatedAt = Instant.parse("2026-07-13T10:20:30Z");
@@ -183,14 +183,14 @@ class RedisPresenterViewStateStoreTest {
 
             assertThat(cleared).hasValueSatisfying(snapshot -> {
                 assertThat(snapshot.hasView()).isFalse();
-                assertThat(snapshot.revision()).isEqualTo(2);
+                assertThat(snapshot.sequence()).isEqualTo(2);
             });
             assertThat(stateStore.get(sessionId)).isEqualTo(cleared.orElseThrow());
 
             PresenterViewEvent event = subscription.awaitSingleEvent();
             assertThat(event.type()).isEqualTo(PresenterViewEventType.PRESENTER_VIEW_CLEARED);
             assertThat(event.reason()).isEqualTo(PresenterViewClearReason.PRESENTATION_DELETED);
-            assertThat(event.revision()).isEqualTo(2);
+            assertThat(event.sequence()).isEqualTo(2);
         }
     }
 
@@ -212,11 +212,11 @@ class RedisPresenterViewStateStoreTest {
         );
 
         assertThat(result).isEmpty();
-        assertThat(stateStore.get(sessionId).revision()).isEqualTo(1);
+        assertThat(stateStore.get(sessionId).sequence()).isEqualTo(1);
     }
 
     @Test
-    void 세션을_초기화하면_다음_리비전을_발행하고_스냅샷을_삭제한다() throws Exception {
+    void 세션을_초기화하면_다음_시퀀스를_발행하고_스냅샷을_삭제한다() throws Exception {
         UUID sessionId = UUID.randomUUID();
         stateStore.update(
             sessionId,
@@ -238,7 +238,7 @@ class RedisPresenterViewStateStoreTest {
             PresenterViewEvent event = subscription.awaitSingleEvent();
             assertThat(event.type()).isEqualTo(PresenterViewEventType.PRESENTER_VIEW_CLEARED);
             assertThat(event.reason()).isEqualTo(PresenterViewClearReason.SESSION_ENDED);
-            assertThat(event.revision()).isEqualTo(2);
+            assertThat(event.sequence()).isEqualTo(2);
         }
     }
 

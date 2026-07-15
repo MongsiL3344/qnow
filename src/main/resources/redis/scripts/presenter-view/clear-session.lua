@@ -3,13 +3,13 @@
 -- ARGV[3]: 세션 ID (sessionId)
 -- ARGV[4]: 발표자 화면을 비운 이유 (reason)
 
-local next_revision = tonumber(redis.call('HGET', KEYS[1], 'revision') or '0') + 1
+local next_sequence = tonumber(redis.call('HGET', KEYS[1], 'sequence') or '0') + 1
 local event = {
     type = 'PRESENTER_VIEW_CLEARED',
     sessionId = ARGV[3],
     presentationId = cjson.null,
     pageNumber = cjson.null,
-    revision = next_revision,
+    sequence = next_sequence,
     updatedAt = ARGV[1],
     reason = ARGV[4]
 }

@@ -277,13 +277,13 @@ class PresenterViewWebSocketIntegrationTest {
             .build());
     }
 
-    private PresenterViewEvent clearEvent(UUID sessionId, long revision) {
+    private PresenterViewEvent clearEvent(UUID sessionId, long sequence) {
         return new PresenterViewEvent(
             PresenterViewEventType.PRESENTER_VIEW_CLEARED,
             sessionId,
             null,
             null,
-            revision,
+            sequence,
             Instant.parse("2026-07-13T10:20:30Z"),
             PresenterViewClearReason.SESSION_ENDED
         );

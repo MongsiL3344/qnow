@@ -10,9 +10,9 @@ if not current_presentation or current_presentation ~= ARGV[1] then
     return ''
 end
 
-local next_revision = tonumber(redis.call('HGET', KEYS[1], 'revision') or '0') + 1
+local next_sequence = tonumber(redis.call('HGET', KEYS[1], 'sequence') or '0') + 1
 redis.call('HDEL', KEYS[1], 'presentationId', 'pageNumber')
-redis.call('HSET', KEYS[1], 'revision', next_revision, 'updatedAt', ARGV[2])
+redis.call('HSET', KEYS[1], 'sequence', next_sequence, 'updatedAt', ARGV[2])
 redis.call('PEXPIRE', KEYS[1], ARGV[3])
 
 local event = {
@@ -20,7 +20,7 @@ local event = {
     sessionId = ARGV[5],
     presentationId = cjson.null,
     pageNumber = cjson.null,
-    revision = next_revision,
+    sequence = next_sequence,
     updatedAt = ARGV[2],
     reason = ARGV[6]
 }

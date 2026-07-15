@@ -90,14 +90,8 @@ class OrganizationDetailControllerTest {
             .startAt(Instant.parse("2026-06-17T10:00:00Z"))
             .build());
 
-        participantRepository.save(Participant.builder()
-            .userId(creator.getId())
-            .session(studySession)
-            .build());
-        participantRepository.save(Participant.builder()
-            .userId(audience.getId())
-            .session(studySession)
-            .build());
+        participantRepository.save(Participant.member(creator.getId(), studySession));
+        participantRepository.save(Participant.member(audience.getId(), studySession));
 
         mockMvc.perform(get("/organizations/{organizationId}", organization.getId())
                 .session(loginSession))

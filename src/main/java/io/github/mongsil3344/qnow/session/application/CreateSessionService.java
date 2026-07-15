@@ -43,10 +43,7 @@ public class CreateSessionService {
 
         Session savedSession = sessionRepository.save(newSession);
 
-        Participant creatorParticipant = Participant.builder()
-            .userId(creatorId)
-            .session(savedSession)
-            .build();
+        Participant creatorParticipant = Participant.member(creatorId, savedSession);
 
         participantRepository.save(creatorParticipant);
     }

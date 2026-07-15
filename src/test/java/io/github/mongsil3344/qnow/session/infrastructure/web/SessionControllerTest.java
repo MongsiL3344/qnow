@@ -125,10 +125,7 @@ class SessionControllerTest {
             .startAt(Instant.parse("2026-06-17T10:00:00Z"))
             .build());
 
-        Participant participant = participantRepository.save(Participant.builder()
-            .userId(user.getId())
-            .session(session)
-            .build());
+        Participant participant = participantRepository.save(Participant.member(user.getId(), session));
 
         mockMvc.perform(post("/organizations/{organizationId}/sessions/{sessionId}/participants/exit",
                 organization.getId(),
@@ -172,18 +169,9 @@ class SessionControllerTest {
             .startAt(Instant.parse("2026-06-17T10:00:00Z"))
             .build());
 
-        Participant adminParticipant = participantRepository.save(Participant.builder()
-            .userId(admin.getId())
-            .session(session)
-            .build());
-        Participant memberParticipant = participantRepository.save(Participant.builder()
-            .userId(member.getId())
-            .session(session)
-            .build());
-        Participant exitedParticipant = participantRepository.save(Participant.builder()
-            .userId(exitedUser.getId())
-            .session(session)
-            .build());
+        Participant adminParticipant = participantRepository.save(Participant.member(admin.getId(), session));
+        Participant memberParticipant = participantRepository.save(Participant.member(member.getId(), session));
+        Participant exitedParticipant = participantRepository.save(Participant.member(exitedUser.getId(), session));
         Instant previousExitAt = Instant.parse("2026-06-17T10:30:00Z");
         exitedParticipant.exit(previousExitAt);
         participantRepository.saveAndFlush(exitedParticipant);

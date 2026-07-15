@@ -8,6 +8,7 @@ import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.session.api.SessionSummary;
 import io.github.mongsil3344.qnow.session.domain.Participant;
 import io.github.mongsil3344.qnow.session.domain.Session;
+import io.github.mongsil3344.qnow.session.domain.SessionParticipateCode;
 import io.github.mongsil3344.qnow.user.domain.User;
 import io.github.mongsil3344.qnow.user.infrastructure.repo.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -85,6 +86,45 @@ class ParticipantRepositoryTest {
     }
 
     @Test
+    void 비회원_참여자를_저장한다() {
+        User creator = saveUser();
+        Session session = saveSession(creator.getId());
+
+        Participant guest = participantRepository.saveAndFlush(Participant.guest("guest", session));
+
+        entityManager.clear();
+
+        Participant savedGuest = participantRepository.findById(guest.getId()).orElseThrow();
+
+        assertThat(savedGuest.getUserId()).isNull();
+        assertThat(savedGuest.getGuestNickname()).isEqualTo("guest");
+    }
+
+    @Test
+    void 세션_참가_코드를_저장한다() {
+        User creator = saveUser();
+        Session session = saveSession(creator.getId());
+        SessionParticipateCode participateCode = SessionParticipateCode.builder()
+            .session(session)
+            .code(UUID.randomUUID().toString())
+            .build();
+
+        entityManager.persist(participateCode);
+        entityManager.flush();
+        entityManager.clear();
+
+        SessionParticipateCode savedCode = entityManager.find(
+            SessionParticipateCode.class,
+            participateCode.getId()
+        );
+
+        assertThat(savedCode.getSession().getId()).isEqualTo(session.getId());
+        assertThat(savedCode.getCode()).isEqualTo(participateCode.getCode());
+        assertThat(savedCode.getCreatedAt()).isNotNull();
+        assertThat(savedCode.getDeletedAt()).isNull();
+    }
+
+    @Test
     void 종료된_세션은_서로_다른_과거_참여자_수를_계산한다() {
         User firstUser = saveUser();
         User secondUser = saveUser();
@@ -134,9 +174,6 @@ class ParticipantRepositoryTest {
     }
 
     private Participant saveParticipant(UUID userId, Session session) {
-        return participantRepository.saveAndFlush(Participant.builder()
-            .userId(userId)
-            .session(session)
-            .build());
+        return participantRepository.saveAndFlush(Participant.member(userId, session));
     }
 }

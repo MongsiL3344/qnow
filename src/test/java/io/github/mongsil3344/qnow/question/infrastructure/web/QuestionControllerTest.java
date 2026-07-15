@@ -377,10 +377,7 @@ class QuestionControllerTest {
             .title("question-session-" + UUID.randomUUID())
             .build());
         Participant participant = activeParticipant
-            ? participantRepository.save(Participant.builder()
-                .userId(user.getId())
-                .session(session)
-                .build())
+            ? participantRepository.save(Participant.member(user.getId(), session))
             : null;
         Presentation presentation = Presentation.builder()
             .sessionId(session.getId())

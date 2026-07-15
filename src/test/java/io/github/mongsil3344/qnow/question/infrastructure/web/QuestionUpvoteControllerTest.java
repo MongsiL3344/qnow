@@ -413,10 +413,7 @@ class QuestionUpvoteControllerTest {
     }
 
     private Participant saveParticipant(User user, Session presentationSession) {
-        return participantRepository.save(Participant.builder()
-            .userId(user.getId())
-            .session(presentationSession)
-            .build());
+        return participantRepository.save(Participant.member(user.getId(), presentationSession));
     }
 
     private MockHttpSession login(String email) throws Exception {

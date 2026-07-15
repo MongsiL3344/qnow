@@ -344,10 +344,7 @@ class QuestionListControllerTest {
     }
 
     private Participant saveParticipant(User user, Session session) {
-        return participantRepository.save(Participant.builder()
-            .userId(user.getId())
-            .session(session)
-            .build());
+        return participantRepository.save(Participant.member(user.getId(), session));
     }
 
     private UUID saveQuestion(

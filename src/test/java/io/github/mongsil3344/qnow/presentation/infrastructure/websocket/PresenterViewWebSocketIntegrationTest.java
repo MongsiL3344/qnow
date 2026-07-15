@@ -262,9 +262,9 @@ class PresenterViewWebSocketIntegrationTest {
             .title("session-" + UUID.randomUUID())
             .startAt(Instant.parse("2026-07-13T09:00:00Z"))
             .build());
-        participantRepository.save(Participant.builder().userId(creator.getId()).session(session).build());
+        participantRepository.save(Participant.member(creator.getId(), session));
         if (audienceParticipates) {
-            participantRepository.save(Participant.builder().userId(audience.getId()).session(session).build());
+            participantRepository.save(Participant.member(audience.getId(), session));
         }
         return new Fixture(audience, session);
     }

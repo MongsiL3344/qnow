@@ -43,10 +43,7 @@ public class JoinSessionService {
             throw new AlreadySessionParticipantException();
         }
 
-        Participant participant = Participant.builder()
-            .userId(userId)
-            .session(session)
-            .build();
+        Participant participant = Participant.member(userId, session);
 
         participantRepository.save(participant);
     }

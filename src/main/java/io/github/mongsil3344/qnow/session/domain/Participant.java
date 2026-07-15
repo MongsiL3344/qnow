@@ -15,7 +15,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,8 +28,11 @@ public class Participant {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private UUID userId;
+
+    @Column(name = "guest_nickname", length = 30)
+    private String guestNickname;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "session_id", nullable = false)
@@ -42,10 +44,24 @@ public class Participant {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    @Builder
+    // Member가 참여하는 경우
     private Participant(UUID userId, Session session) {
-        this.userId = userId;
-        this.session = session;
+        this.userId = Objects.requireNonNull(userId);
+        this.session = Objects.requireNonNull(session);
+    }
+
+    // Guest가 참여하는 경우
+    private Participant(String guestNickname, Session session) {
+        this.guestNickname = Objects.requireNonNull(guestNickname);
+        this.session = Objects.requireNonNull(session);
+    }
+
+    public static Participant member(UUID userId, Session session) {
+        return new Participant(userId, session);
+    }
+
+    public static Participant guest(String guestNickname, Session session) {
+        return new Participant(guestNickname, session);
     }
 
     public void exit() {

@@ -333,7 +333,7 @@ class SessionControllerTest {
     private User saveUser(String email, String rawPassword) {
         User user = User.builder()
             .email(email)
-            .nickname("tester")
+            .nickname("tester-" + UUID.randomUUID().toString().substring(0, 8))
             .password(passwordEncoder.encode(rawPassword))
             .build();
 

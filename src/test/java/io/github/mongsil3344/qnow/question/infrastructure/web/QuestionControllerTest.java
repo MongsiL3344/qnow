@@ -404,7 +404,7 @@ class QuestionControllerTest {
     private User saveUser() {
         return userRepository.save(User.builder()
             .email("question-" + UUID.randomUUID() + "@example.com")
-            .nickname("질문자")
+            .nickname("질문자-" + UUID.randomUUID().toString().substring(0, 8))
             .password(passwordEncoder.encode(PASSWORD))
             .build());
     }

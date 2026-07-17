@@ -246,7 +246,7 @@ class GuestSessionParticipationControllerTest {
     private GuestFlowFixture createFixture(boolean ended) {
         User creator = userRepository.save(User.builder()
             .email("guest-flow-" + UUID.randomUUID() + "@example.com")
-            .nickname("발표자")
+            .nickname("발표자-" + UUID.randomUUID().toString().substring(0, 8))
             .password("encoded-password")
             .build());
         Organization organization = organizationRepository.save(Organization.builder()

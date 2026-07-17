@@ -448,7 +448,7 @@ class QuestionUpvoteControllerTest {
     private User saveUser(String nickname) {
         return userRepository.save(User.builder()
             .email("question-upvote-" + UUID.randomUUID() + "@example.com")
-            .nickname(nickname)
+            .nickname(nickname + "-" + UUID.randomUUID().toString().substring(0, 8))
             .password(passwordEncoder.encode(PASSWORD))
             .build());
     }

@@ -21,10 +21,10 @@ public class PresenterViewRedisMessageListener implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        String payload = new String(message.getBody(), StandardCharsets.UTF_8);
+        String payload = new String(message.getBody(), StandardCharsets.UTF_8); // 루아에서 보내준 이벤트 객체를 String(json)으로 받기
         try {
-            PresenterViewEvent event = objectMapper.readValue(payload, PresenterViewEvent.class);
-            messagingTemplate.convertAndSend(destination(event), event);
+            PresenterViewEvent event = objectMapper.readValue(payload, PresenterViewEvent.class); // PresenterViewEvent 객체로 매핑하기 (역직렬화)
+            messagingTemplate.convertAndSend(destination(event), event); // event 객체의 토픽으로 event객체를 전송
         } catch (Exception ignored) {
         }
     }

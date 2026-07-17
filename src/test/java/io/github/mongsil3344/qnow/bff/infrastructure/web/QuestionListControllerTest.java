@@ -96,7 +96,7 @@ class QuestionListControllerTest {
             .andExpect(jsonPath("$.content[1].upvoteCount").value(5))
             .andExpect(jsonPath("$.content[1].upvotedByMe").value(false))
             .andExpect(jsonPath("$.content[2].id").value(fixture.exitedQuestionId().toString()))
-            .andExpect(jsonPath("$.content[2].questionerName").value("퇴장 질문자"))
+            .andExpect(jsonPath("$.content[2].questionerName").value(fixture.exitedQuestionerNickname()))
             .andExpect(jsonPath("$.content[2].upvoteCount").value(8))
             .andExpect(jsonPath("$.content[2].upvotedByMe").value(true))
             .andExpect(jsonPath("$.content[2].selection.leftRatio").value(0.1))
@@ -320,6 +320,7 @@ class QuestionListControllerTest {
         return new QuestionFixture(
             presentation.getId(),
             login(currentUser.getEmail()),
+            exitedQuestioner.getNickname(),
             oldestQuestionId,
             exitedQuestionId,
             anonymousMineQuestionId,
@@ -330,7 +331,7 @@ class QuestionListControllerTest {
     private User saveUser(String nickname) {
         return userRepository.save(User.builder()
             .email("question-list-" + UUID.randomUUID() + "@example.com")
-            .nickname(nickname)
+            .nickname(nickname + "-" + UUID.randomUUID().toString().substring(0, 8))
             .password(passwordEncoder.encode(PASSWORD))
             .build());
     }
@@ -429,6 +430,7 @@ class QuestionListControllerTest {
     private record QuestionFixture(
         UUID presentationId,
         MockHttpSession loginSession,
+        String exitedQuestionerNickname,
         UUID oldestQuestionId,
         UUID exitedQuestionId,
         UUID anonymousMineQuestionId,

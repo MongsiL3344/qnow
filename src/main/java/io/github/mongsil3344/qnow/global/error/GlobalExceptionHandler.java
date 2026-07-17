@@ -36,6 +36,7 @@ import io.github.mongsil3344.qnow.session.application.exception.OrganizationAdmi
 import io.github.mongsil3344.qnow.session.application.exception.SessionNotFoundException;
 import io.github.mongsil3344.qnow.session.application.exception.SessionParticipateCodeNotFoundException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateEmailException;
+import io.github.mongsil3344.qnow.user.application.exception.DuplicateNicknameException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -54,6 +55,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse("DUPLICATE_EMAIL", e.getMessage()));
+    }
+
+    // 유저 - 닉네임 중복 예외
+    @ExceptionHandler(DuplicateNicknameException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateNickname(DuplicateNicknameException e) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("DUPLICATE_NICKNAME", e.getMessage()));
     }
 
     // 조직 - 조직명 중복 예외

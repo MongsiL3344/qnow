@@ -45,6 +45,28 @@ class AuthControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
+    void 중복된_닉네임으로_회원가입하면_충돌_응답을_반환한다() throws Exception {
+        String nickname = "duplicate-" + UUID.randomUUID().toString().substring(0, 8);
+        String requestedEmail = "signup-" + UUID.randomUUID() + "@example.com";
+        saveUser("existing-" + UUID.randomUUID() + "@example.com", nickname, "password123");
+
+        mockMvc.perform(post("/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "email": "%s",
+                      "nickname": "%s",
+                      "password": "password123"
+                    }
+                    """.formatted(requestedEmail, nickname)))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("DUPLICATE_NICKNAME"))
+            .andExpect(jsonPath("$.message").value("이미 사용 중인 닉네임입니다"));
+
+        assertThat(userRepository.existsByEmailAndDeletedAtIsNull(requestedEmail)).isFalse();
+    }
+
+    @Test
     void 로그인하면_보안_컨텍스트를_세션에_저장한다() throws Exception {
         String email = "login-" + UUID.randomUUID() + "@example.com";
         String password = "password123";
@@ -188,7 +210,8 @@ class AuthControllerTest {
     }
 
     private User saveUser(String email, String rawPassword) {
-        return saveUser(email, "tester", rawPassword);
+        String nickname = "tester-" + UUID.randomUUID().toString().substring(0, 8);
+        return saveUser(email, nickname, rawPassword);
     }
 
     private User saveUser(String email, String nickname, String rawPassword) {

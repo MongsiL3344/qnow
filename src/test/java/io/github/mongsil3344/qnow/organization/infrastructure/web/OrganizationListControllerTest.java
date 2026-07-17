@@ -205,7 +205,7 @@ class OrganizationListControllerTest {
     private User saveUser(String email, String nickname, String rawPassword) {
         User user = User.builder()
             .email(email)
-            .nickname(nickname)
+            .nickname(nickname + "-" + UUID.randomUUID().toString().substring(0, 8))
             .password(passwordEncoder.encode(rawPassword))
             .build();
 

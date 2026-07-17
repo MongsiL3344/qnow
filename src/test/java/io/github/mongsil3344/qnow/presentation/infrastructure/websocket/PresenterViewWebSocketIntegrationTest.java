@@ -272,7 +272,7 @@ class PresenterViewWebSocketIntegrationTest {
     private User saveUser(String prefix) {
         return userRepository.save(User.builder()
             .email("%s-%s@example.com".formatted(prefix, UUID.randomUUID()))
-            .nickname(prefix)
+            .nickname(prefix + "-" + UUID.randomUUID().toString().substring(0, 8))
             .password(passwordEncoder.encode(PASSWORD))
             .build());
     }

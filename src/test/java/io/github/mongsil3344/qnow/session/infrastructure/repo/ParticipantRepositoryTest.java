@@ -196,7 +196,7 @@ class ParticipantRepositoryTest {
     private User saveUser() {
         return userRepository.saveAndFlush(User.builder()
             .email("participant-" + UUID.randomUUID() + "@example.com")
-            .nickname("participant")
+            .nickname("participant-" + UUID.randomUUID().toString().substring(0, 8))
             .password("password")
             .build());
     }

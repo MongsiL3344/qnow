@@ -58,6 +58,7 @@ class CsrfControllerTest {
     @Test
     void 회원가입과_로그인은_CSRF_토큰이_필요하지_않다() throws Exception {
         String email = "csrf-exempt-" + UUID.randomUUID() + "@example.com";
+        String nickname = "csrf-" + UUID.randomUUID().toString().substring(0, 8);
         String password = "password123";
 
         mockMvc.perform(post("/signup")
@@ -65,10 +66,10 @@ class CsrfControllerTest {
                 .content("""
                     {
                       "email": "%s",
-                      "nickname": "csrf-test",
+                      "nickname": "%s",
                       "password": "%s"
                     }
-                    """.formatted(email, password)))
+                    """.formatted(email, nickname, password)))
             .andExpect(status().isCreated());
 
         mockMvc.perform(post("/login")
@@ -101,15 +102,17 @@ class CsrfControllerTest {
     }
 
     private void signup(String email, String password) throws Exception {
+        String nickname = "csrf-" + UUID.randomUUID().toString().substring(0, 8);
+
         mockMvc.perform(post("/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
                       "email": "%s",
-                      "nickname": "csrf-test",
+                      "nickname": "%s",
                       "password": "%s"
                     }
-                    """.formatted(email, password)))
+                    """.formatted(email, nickname, password)))
             .andExpect(status().isCreated());
     }
 

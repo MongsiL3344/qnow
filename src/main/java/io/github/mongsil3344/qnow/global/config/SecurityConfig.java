@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/guest/session-participations").permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
+                                "/organizations/*/sessions/*",
                                 "/organizations/*/sessions/*/presentations",
                                 "/organizations/*/sessions/*/presentations/*/pdf",
                                 "/organizations/*/sessions/*/presenter-view",

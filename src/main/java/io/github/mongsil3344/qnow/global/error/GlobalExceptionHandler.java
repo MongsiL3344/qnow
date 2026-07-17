@@ -2,6 +2,9 @@ package io.github.mongsil3344.qnow.global.error;
 
 import io.github.mongsil3344.qnow.bff.application.exception.SessionPresentationNotFoundException;
 import io.github.mongsil3344.qnow.bff.application.exception.SessionPresentationParticipantRequiredException;
+import io.github.mongsil3344.qnow.bff.application.exception.SessionScreenNotFoundException;
+import io.github.mongsil3344.qnow.bff.application.exception.SessionScreenOrganizationMemberRequiredException;
+import io.github.mongsil3344.qnow.bff.application.exception.SessionScreenParticipantRequiredException;
 import io.github.mongsil3344.qnow.bff.application.exception.InvalidQuestionListQueryException;
 import io.github.mongsil3344.qnow.bff.application.exception.QuestionListPresentationNotFoundException;
 import io.github.mongsil3344.qnow.bff.application.exception.QuestionListParticipantRequiredException;
@@ -254,6 +257,31 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SessionPresentationParticipantRequiredException.class)
     public ResponseEntity<ErrorResponse> handleSessionPresentationParticipantRequired(
         SessionPresentationParticipantRequiredException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("SESSION_PARTICIPANT_REQUIRED", e.getMessage()));
+    }
+
+    @ExceptionHandler(SessionScreenNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleSessionScreenNotFound(SessionScreenNotFoundException e) {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(new ErrorResponse("SESSION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(SessionScreenOrganizationMemberRequiredException.class)
+    public ResponseEntity<ErrorResponse> handleSessionScreenOrganizationMemberRequired(
+        SessionScreenOrganizationMemberRequiredException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("ORGANIZATION_MEMBER_REQUIRED", e.getMessage()));
+    }
+
+    @ExceptionHandler(SessionScreenParticipantRequiredException.class)
+    public ResponseEntity<ErrorResponse> handleSessionScreenParticipantRequired(
+        SessionScreenParticipantRequiredException e
     ) {
         return ResponseEntity
             .status(HttpStatus.FORBIDDEN)

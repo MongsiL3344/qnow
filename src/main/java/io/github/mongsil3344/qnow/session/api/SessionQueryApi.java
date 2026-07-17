@@ -10,6 +10,8 @@ public interface SessionQueryApi {
 
     List<SessionSummary> findSessionSummariesByOrganizationId(UUID organizationId);
 
+    Optional<SessionSummary> findSessionSummary(UUID sessionId, UUID organizationId);
+
     boolean existsSessionInOrganization(UUID sessionId, UUID organizationId);
 
     boolean isActiveParticipant(UUID sessionId, UUID userId);

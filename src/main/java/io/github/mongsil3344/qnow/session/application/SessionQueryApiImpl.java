@@ -50,6 +50,24 @@ public class SessionQueryApiImpl implements SessionQueryApi {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<SessionSummary> findSessionSummary(UUID sessionId, UUID organizationId) {
+        return sessionRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(sessionId, organizationId)
+            .map(session -> {
+                Map<UUID, Long> participantCounts = getParticipantCounts(List.of(session));
+
+                return new SessionSummary(
+                    session.getId(),
+                    session.getTitle(),
+                    session.getCreatorId(),
+                    session.getStartAt(),
+                    session.getEndAt(),
+                    participantCounts.getOrDefault(session.getId(), 0L)
+                );
+            });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public boolean existsSessionInOrganization(UUID sessionId, UUID organizationId) {
         return sessionRepository.existsByIdAndOrganizationIdAndDeletedAtIsNull(sessionId, organizationId);
     }

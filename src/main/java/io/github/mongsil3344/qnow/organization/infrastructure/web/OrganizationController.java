@@ -2,9 +2,11 @@ package io.github.mongsil3344.qnow.organization.infrastructure.web;
 
 import io.github.mongsil3344.qnow.organization.application.CreateOrganizationService;
 import io.github.mongsil3344.qnow.organization.application.GetOrganizationListService;
+import io.github.mongsil3344.qnow.organization.application.GetOrganizationMemberListService;
 import io.github.mongsil3344.qnow.organization.application.JoinOrganizationService;
 import io.github.mongsil3344.qnow.organization.infrastructure.web.dto.CreateOrganizationRequest;
 import io.github.mongsil3344.qnow.organization.infrastructure.web.dto.JoinOrganizationRequest;
+import io.github.mongsil3344.qnow.organization.infrastructure.web.dto.OrganizationMemberSliceResponse;
 import io.github.mongsil3344.qnow.organization.infrastructure.web.dto.OrganizationSearchPageResponse;
 import io.github.mongsil3344.qnow.organization.infrastructure.web.dto.OrganizationSummaryResponse;
 import io.github.mongsil3344.qnow.user.api.UserPrincipal;
@@ -34,6 +36,7 @@ public class OrganizationController {
     private final CreateOrganizationService createOrganizationService;
     private final JoinOrganizationService joinOrganizationService;
     private final GetOrganizationListService getOrganizationListService;
+    private final GetOrganizationMemberListService getOrganizationMemberListService;
 
     @Operation(summary = "조직 개설 API")
     @PostMapping("/organizations")
@@ -62,6 +65,26 @@ public class OrganizationController {
             getOrganizationListService.getOrganizations(principal.id()).stream()
                 .map(OrganizationSummaryResponse::from)
                 .toList()
+        );
+    }
+
+    @Operation(summary = "조직 멤버 목록 조회 API")
+    @GetMapping("/organizations/{organizationId}/members")
+    public ResponseEntity<OrganizationMemberSliceResponse> getOrganizationMembers(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID organizationId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(
+            OrganizationMemberSliceResponse.from(
+                getOrganizationMemberListService.getOrganizationMembers(
+                    organizationId,
+                    principal.id(),
+                    page,
+                    size
+                )
+            )
         );
     }
 

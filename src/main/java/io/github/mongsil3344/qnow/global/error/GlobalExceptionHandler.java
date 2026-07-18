@@ -11,6 +11,7 @@ import io.github.mongsil3344.qnow.bff.application.exception.QuestionListParticip
 import io.github.mongsil3344.qnow.organization.application.exception.DuplicateNameException;
 import io.github.mongsil3344.qnow.organization.application.exception.AlreadyOrganizationMemberException;
 import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationPasswordException;
+import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationMemberListQueryException;
 import io.github.mongsil3344.qnow.organization.application.exception.InvalidOrganizationSearchKeywordException;
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationMemberRequiredException;
 import io.github.mongsil3344.qnow.organization.application.exception.OrganizationNotFoundException;
@@ -112,6 +113,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(new ErrorResponse("INVALID_ORGANIZATION_SEARCH_KEYWORD", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidOrganizationMemberListQueryException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidOrganizationMemberListQuery(
+        InvalidOrganizationMemberListQueryException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("INVALID_ORGANIZATION_MEMBER_LIST_QUERY", e.getMessage()));
     }
 
     @ExceptionHandler(OrganizationMemberRequiredException.class)

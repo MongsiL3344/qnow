@@ -26,6 +26,7 @@ ext {
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -54,7 +55,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-websocket-test'
     testImplementation 'org.springframework.modulith:spring-modulith-docs'
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
-    testImplementation 'org.testcontainers:testcontainers:2.0.5'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter:2.0.5'
     testRuntimeOnly 'com.h2database:h2'
     testCompileOnly 'org.projectlombok:lombok'

@@ -15,7 +15,6 @@ import io.github.mongsil3344.qnow.organization.domain.UserGroupRole;
 import io.github.mongsil3344.qnow.organization.infrastructure.repo.OrganizationRepository;
 import io.github.mongsil3344.qnow.organization.infrastructure.repo.UserGroupRepository;
 import io.github.mongsil3344.qnow.presentation.application.PresenterViewStateStore;
-import io.github.mongsil3344.qnow.presentation.application.PresenterViewUpdateResult;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewUnavailableException;
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewSnapshot;
@@ -168,7 +167,7 @@ class PresenterViewControllerTest {
             org.mockito.ArgumentMatchers.eq(fixture.presentation().getId()),
             org.mockito.ArgumentMatchers.eq(5),
             any(Instant.class)
-        )).thenReturn(new PresenterViewUpdateResult(snapshot, true));
+        )).thenReturn(snapshot);
 
         mockMvc.perform(put(endpoint(), fixture.organization().getId(), fixture.session().getId())
                 .with(csrf())

@@ -30,7 +30,7 @@ if current_presentation == ARGV[1] and current_page == ARGV[2] then
         updatedAt = current_updated_at,
         reason = cjson.null
     }
-    return cjson.encode({changed = false, event = existing_event})
+    return cjson.encode(existing_event)
 end
 
 -- sequence 1 증가, Redis Hash에 저장
@@ -59,7 +59,8 @@ local event = {
 }
 
 -- 이벤트 객체를 직렬화해서 Pub/Sub 발행
-redis.call('PUBLISH', ARGV[5], cjson.encode(event))
+local encoded = cjson.encode(event)
+redis.call('PUBLISH', ARGV[5], encoded)
 
 -- Json 변환해서 반환
-return cjson.encode({changed = true, event = event})
+return encoded

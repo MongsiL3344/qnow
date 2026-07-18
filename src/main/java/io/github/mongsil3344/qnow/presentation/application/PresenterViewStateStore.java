@@ -12,7 +12,7 @@ public interface PresenterViewStateStore {
     PresenterViewSnapshot get(UUID sessionId);
 
     // Redis 스냅샷 업데이트, Pub/Sub 이벤트 발행
-    PresenterViewUpdateResult update(
+    PresenterViewSnapshot update(
         UUID sessionId,
         UUID presentationId,
         int pageNumber,

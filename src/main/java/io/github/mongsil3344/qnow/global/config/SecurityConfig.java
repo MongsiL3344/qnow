@@ -58,7 +58,8 @@ public class SecurityConfig {
                                 "/actuator",
                                 "/actuator/health",
                                 "/actuator/info",
-                                "/actuator/modulith"
+                                "/actuator/modulith",
+                                "/actuator/prometheus"
                         ).permitAll()
                         .requestMatchers("/guest/session-participations").permitAll()
                         .requestMatchers(

@@ -26,6 +26,7 @@ services:
       S3_THUMBNAIL_URL_EXPIRES_SECONDS: ${S3_THUMBNAIL_URL_EXPIRES_SECONDS:-600}
     ports:
       - "8080:8080"
+      - "127.0.0.1:8081:8081"
     volumes:
       - .:/workspace
       - gradle-cache:/home/gradle/.gradle
@@ -52,11 +53,8 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "6379:6379"
-    volumes:
-      - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -68,4 +66,3 @@ services:
 volumes:
   gradle-cache:
   postgres-data:
-  redis-data:

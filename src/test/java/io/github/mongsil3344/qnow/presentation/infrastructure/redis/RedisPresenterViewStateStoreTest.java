@@ -2,13 +2,10 @@ package io.github.mongsil3344.qnow.presentation.infrastructure.redis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.github.mongsil3344.qnow.presentation.application.PresenterViewMetrics;
-import io.github.mongsil3344.qnow.presentation.application.PresenterViewUpdateResult;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewClearReason;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewEvent;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewEventType;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewSnapshot;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -69,7 +66,6 @@ class RedisPresenterViewStateStoreTest {
         stateStore = new RedisPresenterViewStateStore(
             redisTemplate,
             objectMapper,
-            new PresenterViewMetrics(new SimpleMeterRegistry()),
             TTL,
             CHANNEL
         );
@@ -89,24 +85,23 @@ class RedisPresenterViewStateStoreTest {
         Instant updatedAt = Instant.parse("2026-07-13T10:20:30Z");
 
         try (EventSubscription subscription = subscribe(1)) {
-            PresenterViewUpdateResult result = stateStore.update(sessionId, presentationId, 12, updatedAt);
+            PresenterViewSnapshot result = stateStore.update(sessionId, presentationId, 12, updatedAt);
 
-            assertThat(result.changed()).isTrue();
-            assertThat(result.snapshot()).isEqualTo(new PresenterViewSnapshot(
+            assertThat(result).isEqualTo(new PresenterViewSnapshot(
                 sessionId,
                 presentationId,
                 12,
                 1,
                 updatedAt
             ));
-            assertThat(stateStore.get(sessionId)).isEqualTo(result.snapshot());
+            assertThat(stateStore.get(sessionId)).isEqualTo(result);
 
             Long remainingTtl = redisTemplate.getExpire(key(sessionId), TimeUnit.MILLISECONDS);
             assertThat(remainingTtl).isPositive().isLessThanOrEqualTo(TTL.toMillis());
 
             PresenterViewEvent event = subscription.awaitSingleEvent();
             assertThat(event.type()).isEqualTo(PresenterViewEventType.PRESENTER_VIEW_UPDATED);
-            assertThat(event.toSnapshot()).isEqualTo(result.snapshot());
+            assertThat(event.toSnapshot()).isEqualTo(result);
         }
     }
 
@@ -116,18 +111,17 @@ class RedisPresenterViewStateStoreTest {
         UUID presentationId = UUID.randomUUID();
         Instant firstUpdate = Instant.parse("2026-07-13T10:20:30Z");
 
-        PresenterViewUpdateResult first = stateStore.update(sessionId, presentationId, 3, firstUpdate);
+        PresenterViewSnapshot first = stateStore.update(sessionId, presentationId, 3, firstUpdate);
         try (EventSubscription subscription = subscribe(1)) {
-            PresenterViewUpdateResult duplicate = stateStore.update(
+            PresenterViewSnapshot duplicate = stateStore.update(
                 sessionId,
                 presentationId,
                 3,
                 firstUpdate.plusSeconds(30)
             );
 
-            assertThat(duplicate.changed()).isFalse();
-            assertThat(duplicate.snapshot()).isEqualTo(first.snapshot());
-            assertThat(duplicate.snapshot().sequence()).isEqualTo(1);
+            assertThat(duplicate).isEqualTo(first);
+            assertThat(duplicate.sequence()).isEqualTo(1);
             assertThat(subscription.latch().await(300, TimeUnit.MILLISECONDS)).isFalse();
             assertThat(subscription.payloads()).isEmpty();
         }
@@ -141,7 +135,7 @@ class RedisPresenterViewStateStoreTest {
         ExecutorService executor = Executors.newFixedThreadPool(8);
 
         try {
-            List<Future<PresenterViewUpdateResult>> futures = new ArrayList<>();
+            List<Future<PresenterViewSnapshot>> futures = new ArrayList<>();
             for (int page = 1; page <= 20; page++) {
                 int requestedPage = page;
                 futures.add(executor.submit(() -> stateStore.update(
@@ -153,8 +147,8 @@ class RedisPresenterViewStateStoreTest {
             }
 
             List<Long> sequences = new ArrayList<>();
-            for (Future<PresenterViewUpdateResult> future : futures) {
-                sequences.add(future.get(5, TimeUnit.SECONDS).snapshot().sequence());
+            for (Future<PresenterViewSnapshot> future : futures) {
+                sequences.add(future.get(5, TimeUnit.SECONDS).sequence());
             }
 
             assertThat(sequences).containsExactlyInAnyOrderElementsOf(

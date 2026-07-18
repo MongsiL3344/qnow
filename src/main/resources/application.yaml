@@ -23,10 +23,12 @@ spring:
         format_sql: true
 
 management:
+  server:
+    port: 8081
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,modulith
+        include: health,info,metrics,modulith,prometheus
 
 aws:
   region: ${AWS_REGION:ap-northeast-2}

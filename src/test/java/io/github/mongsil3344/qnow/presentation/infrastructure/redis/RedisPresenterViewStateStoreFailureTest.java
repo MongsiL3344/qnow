@@ -1,14 +1,11 @@
 package io.github.mongsil3344.qnow.presentation.infrastructure.redis;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import io.github.mongsil3344.qnow.presentation.application.PresenterViewMetrics;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewUnavailableException;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -30,12 +27,10 @@ class RedisPresenterViewStateStoreFailureTest {
     private HashOperations<String, Object, Object> hashOperations;
 
     @Test
-    void 레디스_연결_실패는_사용_불가_오류로_변환하고_기록한다() {
-        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+    void 레디스_연결_실패는_사용_불가_오류로_변환한다() {
         RedisPresenterViewStateStore stateStore = new RedisPresenterViewStateStore(
             redisTemplate,
             JsonMapper.builder().findAndAddModules().build(),
-            new PresenterViewMetrics(meterRegistry),
             Duration.ofHours(24),
             "qnow:test:presenter-view:events"
         );
@@ -46,7 +41,5 @@ class RedisPresenterViewStateStoreFailureTest {
         assertThatThrownBy(() -> stateStore.get(UUID.randomUUID()))
             .isInstanceOf(PresenterViewUnavailableException.class)
             .hasCauseInstanceOf(RedisConnectionFailureException.class);
-
-        assertThat(meterRegistry.counter("qnow.presenter.view.redis.failure").count()).isEqualTo(1);
     }
 }

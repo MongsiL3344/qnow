@@ -3,7 +3,6 @@ package io.github.mongsil3344.qnow.presentation.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -36,14 +35,11 @@ class UpdatePresenterViewServiceTest {
     @Mock
     private PresentationRepository presentationRepository;
 
-    @Mock
-    private PresenterViewMetrics metrics;
-
     private UpdatePresenterViewService service;
 
     @BeforeEach
     void setUp() {
-        service = new UpdatePresenterViewService(accessValidator, stateStore, presentationRepository, metrics);
+        service = new UpdatePresenterViewService(accessValidator, stateStore, presentationRepository);
     }
 
     @Test
@@ -71,7 +67,7 @@ class UpdatePresenterViewServiceTest {
             org.mockito.ArgumentMatchers.eq(5),
             any(Instant.class)
         ))
-            .thenReturn(new PresenterViewUpdateResult(expected, true));
+            .thenReturn(expected);
 
         assertThat(service.updatePresenterView(
             organizationId,
@@ -80,8 +76,6 @@ class UpdatePresenterViewServiceTest {
             presentation.getId(),
             5
         )).isEqualTo(PresenterViewResult.from(true, expected));
-
-        verify(metrics).recordUpdateSuccess();
     }
 
     @Test
@@ -98,8 +92,6 @@ class UpdatePresenterViewServiceTest {
             UUID.randomUUID(),
             1
         )).isInstanceOf(PresenterViewControlForbiddenException.class);
-
-        verify(metrics).recordUpdateFailure();
         verifyNoInteractions(stateStore, presentationRepository);
     }
 
@@ -171,7 +163,7 @@ class UpdatePresenterViewServiceTest {
             org.mockito.ArgumentMatchers.eq(3),
             any(Instant.class)
         ))
-            .thenReturn(new PresenterViewUpdateResult(existing, false));
+            .thenReturn(existing);
 
         assertThat(service.updatePresenterView(
             organizationId,

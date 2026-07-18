@@ -1,8 +1,6 @@
 package io.github.mongsil3344.qnow.presentation.infrastructure.redis;
 
-import io.github.mongsil3344.qnow.presentation.application.PresenterViewMetrics;
 import io.github.mongsil3344.qnow.presentation.application.PresenterViewStateStore;
-import io.github.mongsil3344.qnow.presentation.application.PresenterViewUpdateResult;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewUnavailableException;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewClearReason;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewEvent;
@@ -15,10 +13,9 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
@@ -32,32 +29,32 @@ public class RedisPresenterViewStateStore implements PresenterViewStateStore {
         "updatedAt"
     );
 
-    private static final DefaultRedisScript<String> UPDATE_SCRIPT = loadScript(
-        "redis/scripts/presenter-view/update.lua"
+    private static final RedisScript<String> UPDATE_SCRIPT = RedisScript.of(
+        new ClassPathResource("redis/scripts/presenter-view/update.lua"),
+        String.class
     );
-    private static final DefaultRedisScript<String> CLEAR_PRESENTATION_SCRIPT = loadScript(
-        "redis/scripts/presenter-view/clear-presentation.lua"
+    private static final RedisScript<String> CLEAR_PRESENTATION_SCRIPT = RedisScript.of(
+        new ClassPathResource("redis/scripts/presenter-view/clear-presentation.lua"),
+        String.class
     );
-    private static final DefaultRedisScript<String> CLEAR_SESSION_SCRIPT = loadScript(
-        "redis/scripts/presenter-view/clear-session.lua"
+    private static final RedisScript<String> CLEAR_SESSION_SCRIPT = RedisScript.of(
+        new ClassPathResource("redis/scripts/presenter-view/clear-session.lua"),
+        String.class
     );
 
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
-    private final PresenterViewMetrics metrics;
     private final Duration ttl;
     private final String channel;
 
     public RedisPresenterViewStateStore(
         StringRedisTemplate redisTemplate,
         ObjectMapper objectMapper,
-        PresenterViewMetrics metrics,
         @Value("${qnow.presenter-view.ttl:24h}") Duration ttl,
         @Value("${qnow.presenter-view.channel:qnow:presenter-view:events}") String channel
     ) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
-        this.metrics = metrics;
         this.ttl = ttl;
         this.channel = channel;
     }
@@ -94,14 +91,14 @@ public class RedisPresenterViewStateStore implements PresenterViewStateStore {
     }
 
     @Override
-    public PresenterViewUpdateResult update(
+    public PresenterViewSnapshot update(
         UUID sessionId,
         UUID presentationId,
         int pageNumber,
         Instant updatedAt
     ) {
         try {
-            // 루아 스크립트 실행해서 결과(변경여부, event 객체)를 String으로 받아옴
+            // 루아 스크립트 실행 결과를 이벤트 JSON으로 받음
             String result = redisTemplate.execute(
                 UPDATE_SCRIPT,                  // 실행할 스크립트
                 List.of(key(sessionId)),        // List<K> Keys
@@ -115,14 +112,7 @@ public class RedisPresenterViewStateStore implements PresenterViewStateStore {
             if (!StringUtils.hasText(result)) {
                 throw new IllegalStateException("Redis update script returned no result");
             }
-            // 받아온 String 결과를 Java 객체로 역직렬화
-            JsonNode root = objectMapper.readTree(result);
-
-            // 역직렬화 된 객체에서 event객체만 따로 뽑음
-            PresenterViewEvent event = objectMapper.treeToValue(root.get("event"), PresenterViewEvent.class);
-
-            // DTO 객체로 반환
-            return new PresenterViewUpdateResult(event.toSnapshot(), root.path("changed").asBoolean());
+            return objectMapper.readValue(result, PresenterViewEvent.class).toSnapshot();
         } catch (RuntimeException exception) {
             throw unavailable(exception);
         }
@@ -175,7 +165,6 @@ public class RedisPresenterViewStateStore implements PresenterViewStateStore {
     }
 
     private PresenterViewUnavailableException unavailable(Exception cause) {
-        metrics.recordRedisFailure();
         return new PresenterViewUnavailableException(cause);
     }
 
@@ -190,12 +179,5 @@ public class RedisPresenterViewStateStore implements PresenterViewStateStore {
 
     private Integer parseInteger(Object value) {
         return value == null ? null : Integer.valueOf(value.toString());
-    }
-
-    private static DefaultRedisScript<String> loadScript(String location) {
-        DefaultRedisScript<String> script = new DefaultRedisScript<>();
-        script.setLocation(new ClassPathResource(location));
-        script.setResultType(String.class);
-        return script;
     }
 }

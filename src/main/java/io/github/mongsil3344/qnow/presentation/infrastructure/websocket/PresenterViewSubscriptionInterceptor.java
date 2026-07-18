@@ -1,6 +1,5 @@
 package io.github.mongsil3344.qnow.presentation.infrastructure.websocket;
 
-import io.github.mongsil3344.qnow.presentation.application.PresenterViewMetrics;
 import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionActorResolver;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
@@ -26,16 +25,13 @@ public class PresenterViewSubscriptionInterceptor implements ChannelInterceptor 
 
     private final SessionQueryApi sessionQueryApi;
     private final SessionActorResolver sessionActorResolver;
-    private final PresenterViewMetrics metrics;
 
     public PresenterViewSubscriptionInterceptor(
         SessionQueryApi sessionQueryApi,
-        SessionActorResolver sessionActorResolver,
-        PresenterViewMetrics metrics
+        SessionActorResolver sessionActorResolver
     ) {
         this.sessionQueryApi = sessionQueryApi;
         this.sessionActorResolver = sessionActorResolver;
-        this.metrics = metrics;
     }
 
     @Override
@@ -84,7 +80,6 @@ public class PresenterViewSubscriptionInterceptor implements ChannelInterceptor 
     }
 
     private void deny(String reason) {
-        metrics.recordSubscriptionDenied();
         throw new AccessDeniedException(reason);
     }
 }

@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.github.mongsil3344.qnow.presentation.application.PresenterViewMetrics;
 import io.github.mongsil3344.qnow.session.api.GuestPrincipal;
 import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionActorResolver;
@@ -38,9 +37,6 @@ class PresenterViewSubscriptionInterceptorTest {
     @Mock
     private SessionActorResolver sessionActorResolver;
 
-    @Mock
-    private PresenterViewMetrics metrics;
-
     private PresenterViewSubscriptionInterceptor interceptor;
     private MessageChannel channel;
 
@@ -48,8 +44,7 @@ class PresenterViewSubscriptionInterceptorTest {
     void setUp() {
         interceptor = new PresenterViewSubscriptionInterceptor(
             sessionQueryApi,
-            sessionActorResolver,
-            metrics
+            sessionActorResolver
         );
         channel = mock(MessageChannel.class);
     }
@@ -106,7 +101,6 @@ class PresenterViewSubscriptionInterceptorTest {
             .hasMessage("Active session participant is required");
 
         verify(sessionQueryApi).isActiveParticipant(sessionId, actor);
-        verify(metrics).recordSubscriptionDenied();
     }
 
     @Test
@@ -122,7 +116,6 @@ class PresenterViewSubscriptionInterceptorTest {
             .isInstanceOf(AccessDeniedException.class);
 
         verifyNoInteractions(sessionQueryApi);
-        verify(metrics).recordSubscriptionDenied();
     }
 
     @Test
@@ -138,7 +131,6 @@ class PresenterViewSubscriptionInterceptorTest {
             .hasMessage("Unsupported STOMP subscription destination");
 
         verifyNoInteractions(sessionQueryApi);
-        verify(metrics).recordSubscriptionDenied();
     }
 
     @Test
@@ -154,7 +146,6 @@ class PresenterViewSubscriptionInterceptorTest {
             .hasMessage("Client STOMP SEND is not allowed");
 
         verifyNoInteractions(sessionQueryApi);
-        verify(metrics).recordSubscriptionDenied();
     }
 
     private Message<byte[]> message(

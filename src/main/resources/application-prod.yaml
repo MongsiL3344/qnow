@@ -1,0 +1,52 @@
+# 운영 환경 설정
+# SPRING_PROFILES_ACTIVE=prod로 활성화
+
+spring:
+  # 종료 중인 요청은 최대 20초까지 대기
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+  # RDS 연결 풀
+  datasource:
+    hikari:
+      # t4g.small 기준
+      maximum-pool-size: 10
+      minimum-idle: 5
+      # 연결 대기 시간과 유휴 시간 단위는 ms
+      connection-timeout: 5000
+      idle-timeout: 300000
+
+  # 운영에서는 SQL 포맷 비활성화
+  jpa:
+    properties:
+      hibernate:
+        format_sql: false
+
+# t4g.small 기준 Tomcat 설정
+server:
+  tomcat:
+    threads:
+      max: 100
+      min-spare: 10
+    accept-count: 50
+    keep-alive-timeout: 60000
+    max-keep-alive-requests: 200
+
+# 운영에서는 API 문서 비활성화
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# 운영 로그 레벨
+logging:
+  level:
+    root: INFO
+    io.github.mongsil3344.qnow: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework: WARN
+    org.springframework.web: WARN
+    com.zaxxer.hikari: INFO
+    org.flywaydb: INFO

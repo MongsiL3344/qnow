@@ -1,0 +1,73 @@
+# EC2에서 실행할 운영용 앱 컨테이너
+# RDS, ElastiCache, S3는 AWS 서비스 사용
+# 실행: docker compose -f compose.prod.yaml --env-file .env.prod up -d
+
+services:
+  app:
+    # ECR 이미지
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG:-latest}
+    container_name: qnow-app
+
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      # RDS
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${RDS_HOSTNAME}:${RDS_PORT:-5432}/${RDS_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${RDS_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${RDS_PASSWORD}
+
+      # ElastiCache
+      SPRING_DATA_REDIS_HOST: ${REDIS_HOSTNAME}
+      SPRING_DATA_REDIS_PORT: ${REDIS_PORT:-6379}
+
+      # EC2 IAM Role과 S3 설정
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_UPLOAD_URL_EXPIRES_SECONDS: ${S3_UPLOAD_URL_EXPIRES_SECONDS:-600}
+      S3_THUMBNAIL_URL_EXPIRES_SECONDS: ${S3_THUMBNAIL_URL_EXPIRES_SECONDS:-600}
+      S3_PDF_URL_EXPIRES_SECONDS: ${S3_PDF_URL_EXPIRES_SECONDS:-600}
+
+      # Qnow 설정
+      QNOW_WEBSOCKET_ALLOWED_ORIGINS: ${QNOW_WEBSOCKET_ALLOWED_ORIGINS:?QNOW_WEBSOCKET_ALLOWED_ORIGINS is required}
+      QNOW_PRESENTER_VIEW_TTL: ${QNOW_PRESENTER_VIEW_TTL:-24h}
+
+      # t4g.small 기준 JVM 설정
+      JAVA_TOOL_OPTIONS: >-
+        -XX:MaxRAMPercentage=75.0
+        -XX:+ExitOnOutOfMemoryError
+
+    # 앱과 Actuator 포트
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+
+    # 앱 상태 확인
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # t4g.small 기준 리소스 제한
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+          cpus: "1.5"
+        reservations:
+          memory: 1024M
+          cpus: "0.5"
+
+    restart: unless-stopped
+
+    # 로그 파일 크기 제한
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        tag: "qnow-app"
+
+    # 정상 종료 대기 시간
+    stop_grace_period: 30s

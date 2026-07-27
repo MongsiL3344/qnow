@@ -41,6 +41,7 @@ import io.github.mongsil3344.qnow.session.application.exception.SessionNotFoundE
 import io.github.mongsil3344.qnow.session.application.exception.SessionParticipateCodeNotFoundException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateEmailException;
 import io.github.mongsil3344.qnow.user.application.exception.DuplicateNicknameException;
+import io.github.mongsil3344.qnow.user.application.exception.EmailVerificationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -67,6 +68,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse("DUPLICATE_NICKNAME", e.getMessage()));
+    }
+
+    @ExceptionHandler(EmailVerificationException.class)
+    public ResponseEntity<ErrorResponse> handleEmailVerification(EmailVerificationException e) {
+        HttpStatus status = switch (e.error()) {
+            case REQUEST_TOO_FREQUENT, REQUEST_LIMIT_EXCEEDED, ATTEMPTS_EXCEEDED ->
+                HttpStatus.TOO_MANY_REQUESTS;
+            case CODE_EXPIRED -> HttpStatus.GONE;
+            case CODE_MISMATCH -> HttpStatus.BAD_REQUEST;
+            case REQUIRED -> HttpStatus.FORBIDDEN;
+            case DELIVERY_FAILED, UNAVAILABLE -> HttpStatus.SERVICE_UNAVAILABLE;
+        };
+
+        return ResponseEntity
+            .status(status)
+            .body(new ErrorResponse("EMAIL_VERIFICATION_" + e.error().name(), e.getMessage()));
     }
 
     // 조직 - 조직명 중복 예외

@@ -36,12 +36,12 @@ public class HttpLoggingFilter extends OncePerRequestFilter {
     private static final String ANSI_RESET = "\u001B[0m";
 
     private static final Pattern SENSITIVE_JSON_VALUE_PATTERN = Pattern.compile(
-            "(?i)(\"(?:password|passwd|token|accessToken|refreshToken|csrfToken|secret|authorization|cookie|"
+            "(?i)(\"(?:password|passwd|token|accessToken|refreshToken|csrfToken|verificationCode|secret|authorization|cookie|"
                     + "uploadUrl|thumbnailUploadUrl|pdfUrl)\"\\s*:\\s*)"
                     + "(\"(?:\\\\.|[^\"\\\\])*\"|[^,}\\s]+)"
     );
     private static final Pattern SENSITIVE_FORM_VALUE_PATTERN = Pattern.compile(
-            "(?i)((?:^|&)(?:password|passwd|token|access_token|refresh_token|csrf_token|secret|"
+            "(?i)((?:^|&)(?:password|passwd|token|access_token|refresh_token|csrf_token|verification_code|secret|"
                     + "authorization|cookie)=)[^&]*"
     );
 

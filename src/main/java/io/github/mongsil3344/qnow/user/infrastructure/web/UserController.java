@@ -1,8 +1,11 @@
 package io.github.mongsil3344.qnow.user.infrastructure.web;
 
+import io.github.mongsil3344.qnow.user.application.EmailVerificationService;
 import io.github.mongsil3344.qnow.user.application.SignUpService;
 import io.github.mongsil3344.qnow.user.api.UserPrincipal;
 import io.github.mongsil3344.qnow.user.infrastructure.web.dto.CurrentUserResponse;
+import io.github.mongsil3344.qnow.user.infrastructure.web.dto.EmailVerificationConfirmRequest;
+import io.github.mongsil3344.qnow.user.infrastructure.web.dto.EmailVerificationRequest;
 import io.github.mongsil3344.qnow.user.infrastructure.web.dto.SignUpRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +25,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final SignUpService signUpService;
+    private final EmailVerificationService emailVerificationService;
+
+    @Operation(summary = "회원가입 이메일 인증번호 발급 API")
+    @PostMapping("/email-verifications")
+    public ResponseEntity<Void> requestEmailVerification(
+        @Valid @RequestBody EmailVerificationRequest request
+    ) {
+        emailVerificationService.requestCode(request.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    @Operation(summary = "회원가입 이메일 인증번호 확인 API")
+    @PostMapping("/email-verifications/confirm")
+    public ResponseEntity<Void> confirmEmailVerification(
+        @Valid @RequestBody EmailVerificationConfirmRequest request
+    ) {
+        emailVerificationService.verifyCode(request.email(), request.verificationCode());
+        return ResponseEntity.noContent().build();
+    }
 
     @Operation(summary = "회원가입 API")
     @PostMapping("/signup")

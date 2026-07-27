@@ -20,6 +20,14 @@ aws:
   region: ${AWS_REGION:ap-northeast-2}
 
 qnow:
+  email-verification:
+    sender: local
+    code-ttl: 5m
+    verified-ttl: 30m
+    request-cooldown: 1m
+    request-limit-window: 1h
+    request-limit: 5
+    max-attempts: 5
   presenter-view:
     realtime-enabled: false
   storage:

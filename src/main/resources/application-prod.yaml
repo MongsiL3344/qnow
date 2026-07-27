@@ -50,3 +50,8 @@ logging:
     org.springframework.web: WARN
     com.zaxxer.hikari: INFO
     org.flywaydb: INFO
+
+qnow:
+  email-verification:
+    sender: ${QNOW_EMAIL_VERIFICATION_SENDER}
+    from-email: ${AWS_SES_FROM_EMAIL}

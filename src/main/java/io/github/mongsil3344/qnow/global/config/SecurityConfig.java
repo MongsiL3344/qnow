@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
                         .csrfTokenRequestHandler(csrfTokenRequestHandler)
-                        .ignoringRequestMatchers("/login", "/signup")
+                        .ignoringRequestMatchers("/login", "/signup", "/email-verifications/**")
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -52,6 +52,7 @@ public class SecurityConfig {
                                 "/csrf",
                                 "/signup",
                                 "/login",
+                                "/email-verifications/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",

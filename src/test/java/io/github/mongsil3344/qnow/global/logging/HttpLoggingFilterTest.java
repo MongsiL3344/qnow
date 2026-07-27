@@ -34,7 +34,7 @@ class HttpLoggingFilterTest {
         request.addHeader("Cookie", "JSESSIONID=session-secret");
         request.addHeader("X-CSRF-TOKEN", "csrf-secret");
         request.setContent("""
-                {"email":"owner@example.com","password":"plain-password"}
+                {"email":"owner@example.com","password":"plain-password","verificationCode":"123456"}
                 """.getBytes(StandardCharsets.UTF_8));
 
         filter.doFilter(request, response, (servletRequest, servletResponse) -> {
@@ -55,9 +55,16 @@ class HttpLoggingFilterTest {
                     "Cookie=***",
                     "X-CSRF-TOKEN=***",
                     "\"email\":\"owner@example.com\"",
-                    "\"password\":\"***\""
+                    "\"password\":\"***\"",
+                    "\"verificationCode\":\"***\""
             );
-            assertThat(log).doesNotContain("plain-password", "request-secret", "session-secret", "csrf-secret");
+            assertThat(log).doesNotContain(
+                "plain-password",
+                "123456",
+                "request-secret",
+                "session-secret",
+                "csrf-secret"
+            );
         });
         assertThat(filter.responseLogs).singleElement().satisfies(log -> {
             assertThat(log).startsWith("\n**************************************************\nHTTP 응답\n");

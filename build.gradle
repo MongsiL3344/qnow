@@ -40,6 +40,7 @@ dependencies {
     implementation 'org.springframework.modulith:spring-modulith-starter-jpa'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
     implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:ses'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql'
     runtimeOnly 'org.postgresql:postgresql'

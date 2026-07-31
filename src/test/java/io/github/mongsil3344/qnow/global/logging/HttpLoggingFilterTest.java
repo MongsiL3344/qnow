@@ -1,7 +1,9 @@
 package io.github.mongsil3344.qnow.global.logging;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -14,111 +16,88 @@ import org.springframework.mock.web.MockHttpServletResponse;
 class HttpLoggingFilterTest {
 
     @Test
-    void 요청과_응답_로그에_서로_다른_ANSI_색상을_적용한다() {
-        HttpLoggingFilter filter = new HttpLoggingFilter();
-
-        assertThat(filter.colorizeRequestLog("요청"))
-                .isEqualTo("\u001B[38;5;208m요청\u001B[0m");
-        assertThat(filter.colorizeResponseLog("응답"))
-                .isEqualTo("\u001B[32m응답\u001B[0m");
-    }
-
-    @Test
-    void 민감한_값을_가리면서_요청과_응답을_기록한다() throws Exception {
+    void 요청이_끝나면_요약_정보를_항목별로_한_줄씩_기록한다() throws Exception {
         TestHttpLoggingFilter filter = new TestHttpLoggingFilter();
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/login");
         MockHttpServletResponse response = new MockHttpServletResponse();
         request.setContentType(MediaType.APPLICATION_JSON_VALUE);
         request.setCharacterEncoding(StandardCharsets.UTF_8.name());
         request.addHeader("Authorization", "Bearer request-secret");
-        request.addHeader("Cookie", "JSESSIONID=session-secret");
-        request.addHeader("X-CSRF-TOKEN", "csrf-secret");
+        request.setQueryString("token=query-secret");
         request.setContent("""
-                {"email":"owner@example.com","password":"plain-password","verificationCode":"123456"}
+                {"email":"owner@example.com","password":"plain-password"}
                 """.getBytes(StandardCharsets.UTF_8));
 
         filter.doFilter(request, response, (servletRequest, servletResponse) -> {
+            assertThat(((MockHttpServletResponse) servletResponse).getHeader(HttpLoggingFilter.REQUEST_ID_HEADER))
+                    .isEqualTo("test-request-id");
             servletRequest.getInputStream().readAllBytes();
+            ((HttpServletResponse) servletResponse).setStatus(201);
             servletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            ((HttpServletResponse) servletResponse).setHeader("Set-Cookie", "JSESSIONID=response-secret");
             servletResponse.getWriter().write("{\"token\":\"response-token\",\"message\":\"ok\"}");
         });
 
-        assertThat(filter.requestLogs).singleElement().satisfies(log -> {
-            assertThat(log).startsWith("**************************************************\n");
-            assertThat(log).doesNotContain("↓");
-            assertThat(log).contains(
-                    "HTTP 요청",
-                    "메서드: POST",
-                    "경로: /login",
-                    "Authorization=***",
-                    "Cookie=***",
-                    "X-CSRF-TOKEN=***",
-                    "\"email\":\"owner@example.com\"",
-                    "\"password\":\"***\"",
-                    "\"verificationCode\":\"***\""
-            );
-            assertThat(log).doesNotContain(
-                "plain-password",
-                "123456",
-                "request-secret",
-                "session-secret",
-                "csrf-secret"
-            );
-        });
-        assertThat(filter.responseLogs).singleElement().satisfies(log -> {
-            assertThat(log).startsWith("\n**************************************************\nHTTP 응답\n");
-            assertThat(log).endsWith("\n**************************************************");
-            assertThat(log).contains(
-                    "HTTP 응답",
-                    "상태: 200",
-                    "메서드: POST",
-                    "경로: /login",
-                    "Set-Cookie=***",
-                    "\"token\":\"***\"",
-                    "\"message\":\"ok\"",
-                    "소요 시간:"
-            );
-            assertThat(log).doesNotContain("response-secret", "response-token");
-        });
+        assertThat(filter.accessLogs)
+                .containsExactly("""
+
+                        RequestID: test-request-id
+                        Path: /login
+                        Method: POST
+                        Status: 201
+                        DurationMs: 45ms""");
+        assertThat(response.getHeader(HttpLoggingFilter.REQUEST_ID_HEADER)).isEqualTo("test-request-id");
         assertThat(response.getContentAsString()).isEqualTo(
                 "{\"token\":\"response-token\",\"message\":\"ok\"}"
         );
     }
 
     @Test
-    void 바이너리_본문은_생략하고_응답은_보존한다() throws Exception {
+    void 처리되지_않은_예외는_상태를_500으로_기록한다() {
         TestHttpLoggingFilter filter = new TestHttpLoggingFilter();
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/presentations");
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/fail");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        byte[] binaryContent = {0, 1, 2, 3};
-        request.setContentType(MediaType.APPLICATION_PDF_VALUE);
-        request.setContent(binaryContent);
 
-        filter.doFilter(request, response, (servletRequest, servletResponse) -> {
-            servletRequest.getInputStream().readAllBytes();
-            servletResponse.setContentType(MediaType.APPLICATION_PDF_VALUE);
-            servletResponse.getOutputStream().write(binaryContent);
-        });
+        assertThatThrownBy(() -> filter.doFilter(request, response, (servletRequest, servletResponse) -> {
+            throw new ServletException("test failure");
+        })).isInstanceOf(ServletException.class);
 
-        assertThat(filter.requestLogs).singleElement().asString().contains("본문: [본문 생략: application/pdf]");
-        assertThat(filter.responseLogs).singleElement().asString().contains("본문: [본문 생략: application/pdf]");
-        assertThat(response.getContentAsByteArray()).containsExactly(binaryContent);
+        assertThat(filter.accessLogs)
+                .containsExactly("""
+
+                        RequestID: test-request-id
+                        Path: /fail
+                        Method: GET
+                        Status: 500
+                        DurationMs: 45ms""");
     }
 
     private static final class TestHttpLoggingFilter extends HttpLoggingFilter {
 
-        private final List<String> requestLogs = new ArrayList<>();
-        private final List<String> responseLogs = new ArrayList<>();
+        private static final long STARTED_AT_NANOS = 100_000_000;
+        private static final long FINISHED_AT_NANOS = 145_000_000;
+
+        private final List<String> accessLogs = new ArrayList<>();
+        private int nanoTimeCallCount;
 
         @Override
-        protected void writeRequestLog(String message) {
-            requestLogs.add(message);
+        protected String createRequestId() {
+            return "test-request-id";
         }
 
         @Override
-        protected void writeResponseLog(String message) {
-            responseLogs.add(message);
+        protected long nanoTime() {
+            return nanoTimeCallCount++ == 0 ? STARTED_AT_NANOS : FINISHED_AT_NANOS;
+        }
+
+        @Override
+        protected void writeAccessLog(
+                String requestId,
+                String method,
+                String path,
+                int status,
+                long durationMillis
+        ) {
+            accessLogs.add(formatAccessLog(requestId, method, path, status, durationMillis));
         }
     }
 }

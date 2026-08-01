@@ -1,0 +1,33 @@
+name: pr.yml
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  scan:
+    # Trivy
+    name: Trivy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Get Docker Buildx Action
+        uses: docker/setup-buildx-action@v4
+
+      - name: Docker Build
+        run: |
+          docker buildx build \
+          --file Dockerfile.prod \
+          --tag qnow:scan \
+          --load \
+          .
+          
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: 'qnow:scan'
+          format: 'table'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'

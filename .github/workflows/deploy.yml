@@ -92,14 +92,25 @@ jobs:
                 "cd /home/ec2-user/qnow",
                 "echo \($b64 | @sh) | base64 -d > compose.prod.yaml",
                 "aws ecr get-login-password --region \($region) | docker login --username AWS --password-stdin \($reg)",
+                "check_health() { for i in $(seq 1 40); do curl -sf http://localhost:8081/actuator/health >/dev/null && return 0; sleep 5; done; return 1; }",
+                "PREV_IMAGE=$(docker inspect qnow-app --format \"{{.Config.Image}}\" 2>/dev/null || true)",
                 "export IMAGE_TAG=\($tag)",
                 "docker compose -f compose.prod.yaml --env-file .env.prod pull",
                 "docker compose -f compose.prod.yaml --env-file .env.prod up -d --remove-orphans",
-                "for i in $(seq 1 40); do curl -sf http://localhost:8081/actuator/health >/dev/null && echo healthy && exit 0; sleep 5; done",
+                "if check_health; then echo healthy; exit 0; fi",
                 "echo health check failed",
                 "docker compose -f compose.prod.yaml --env-file .env.prod ps",
                 "aws logs tail /qnow/app --since 5m --region ap-northeast-2 || true",
-                "exit 1" 
+                "PREV_TAG=${PREV_IMAGE##*:}",
+                "if [ -n \"$PREV_IMAGE\" ] && [ \"$PREV_TAG\" != \"$IMAGE_TAG\" ]; then",
+                "  echo rolling back to \"$PREV_TAG\"",
+                "  export IMAGE_TAG=$PREV_TAG",
+                "  docker compose -f compose.prod.yaml --env-file .env.prod up -d --remove-orphans",
+                "  if check_health; then echo rollback succeeded, previous version restored; else echo rollback health check also failed; fi",
+                "else",
+                "  echo no previous image to roll back to",
+                "fi",
+                "exit 1"
               ],
               executionTimeout: ["900"]
             }')

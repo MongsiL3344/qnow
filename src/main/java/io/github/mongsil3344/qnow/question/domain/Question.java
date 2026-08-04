@@ -87,6 +87,12 @@ public class Question {
         upvoteCount--;
     }
 
+    public void delete() {
+        if (deletedAt == null) {
+            deletedAt = Instant.now();
+        }
+    }
+
     @PrePersist
     void initialize() {
         if (createdAt == null) {

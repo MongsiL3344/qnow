@@ -82,7 +82,8 @@ public class SecurityConfig {
                         ).hasAnyRole("MEMBER", "GUEST")
                         .requestMatchers(
                                 HttpMethod.DELETE,
-                                "/questions/*/upvote"
+                                "/questions/*/upvote",
+                                "/questions/*"
                         ).hasAnyRole("MEMBER", "GUEST")
                         .requestMatchers("/ws").hasAnyRole("MEMBER", "GUEST")
                         .requestMatchers("/organizations/**", "/users/**").hasRole("MEMBER")

@@ -29,6 +29,7 @@ import io.github.mongsil3344.qnow.presentation.application.exception.PresenterVi
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewUnavailableException;
 import io.github.mongsil3344.qnow.question.application.exception.GuestUpvoteNotAllowedException;
 import io.github.mongsil3344.qnow.question.application.exception.InvalidQuestionReferenceException;
+import io.github.mongsil3344.qnow.question.application.exception.QuestionDeleteForbiddenException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionPresentationNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.SelfUpvoteNotAllowedException;
@@ -359,6 +360,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("QUESTION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(QuestionDeleteForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleQuestionDeleteForbidden(QuestionDeleteForbiddenException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("QUESTION_DELETE_FORBIDDEN", e.getMessage()));
     }
 
     @ExceptionHandler(SelfUpvoteNotAllowedException.class)

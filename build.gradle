@@ -21,6 +21,8 @@ repositories {
 ext {
     set('springModulithVersion', "2.0.5")
     set('awsSdkVersion', "2.27.21")
+    set('netty.version', "4.2.16.Final")
+    set('postgresql.version', "42.7.12")
 }
 
 dependencies {

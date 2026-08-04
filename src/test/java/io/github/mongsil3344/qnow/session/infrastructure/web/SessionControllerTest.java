@@ -59,7 +59,7 @@ class SessionControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void 세션_생성은_요청_본문의_시작_시간을_사용한다() throws Exception {
+    void 세션을_생성해도_개설자는_참가자로_등록되지_않는다() throws Exception {
         String password = "password123";
         User creator = saveUser("session-creator-" + UUID.randomUUID() + "@example.com", password);
         MockHttpSession loginSession = login(creator.getEmail(), password);
@@ -103,7 +103,7 @@ class SessionControllerTest {
         assertThat(participantRepository.existsByUserIdAndSessionIdAndDeletedAtIsNull(
             creator.getId(),
             createdSession.getId()
-        )).isTrue();
+        )).isFalse();
         assertThat(participateCodeRepository.findActiveBySessionId(createdSession.getId()))
             .isPresent();
     }

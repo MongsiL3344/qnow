@@ -31,6 +31,11 @@ RUN ./gradlew bootJar --no-daemon \
 # t4g.small 배포 이미지는 linux/arm64로 빌드
 FROM amazoncorretto:21-al2023-headless AS runtime
 
+ARG AL2023_RELEASE=2023.12.20260803
+
+RUN dnf upgrade -y --releasever="${AL2023_RELEASE}" \
+    && dnf clean all
+
 WORKDIR /app
 
 # 실행에 필요한 JAR만 복사

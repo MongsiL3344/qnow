@@ -7,6 +7,7 @@ import java.util.UUID;
 public record QuestionSummary(
     UUID id,
     UUID questionerParticipantId,
+    String kind,
     String content,
     boolean anonymous,
     int pageStart,
@@ -14,7 +15,8 @@ public record QuestionSummary(
     Selection selection,
     int upvoteCount,
     boolean upvotedByMe,
-    Instant createdAt
+    Instant createdAt,
+    Instant approvedAt
 ) {
 
     public record Selection(

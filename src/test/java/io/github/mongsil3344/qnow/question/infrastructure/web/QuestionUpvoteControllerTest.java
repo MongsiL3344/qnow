@@ -340,6 +340,25 @@ class QuestionUpvoteControllerTest {
     }
 
     @Test
+    void 제어_요청은_공감할_수_없다() throws Exception {
+        UpvoteFixture fixture = createFixture();
+        Question controlRequest = questionRepository.saveAndFlush(
+            Question.controlRequest(
+                fixture.presentation().getId(),
+                fixture.question().getQuestionerId(),
+                2
+            )
+        );
+
+        putUpvote(controlRequest.getId(), fixture.voterLogin())
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("CONTROL_REQUEST_NOT_UPVOTABLE"));
+
+        assertThat(upvoteRowCount(controlRequest.getId())).isZero();
+        assertThat(questionUpvoteCount(controlRequest.getId())).isZero();
+    }
+
+    @Test
     void 존재하지_않거나_삭제된_질문은_추천할_수_없다() throws Exception {
         UpvoteFixture fixture = createFixture();
         UUID missingQuestionId = UUID.randomUUID();

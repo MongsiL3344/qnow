@@ -3,11 +3,13 @@ package io.github.mongsil3344.qnow.question.application;
 import io.github.mongsil3344.qnow.presentation.api.PresentationQueryApi;
 import io.github.mongsil3344.qnow.presentation.api.UploadedPresentationInfo;
 import io.github.mongsil3344.qnow.question.application.dto.QuestionUpvoteResult;
+import io.github.mongsil3344.qnow.question.application.exception.ControlRequestNotUpvotableException;
 import io.github.mongsil3344.qnow.question.application.exception.GuestUpvoteNotAllowedException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.SelfUpvoteNotAllowedException;
 import io.github.mongsil3344.qnow.question.application.exception.SessionParticipantRequiredException;
 import io.github.mongsil3344.qnow.question.domain.Question;
+import io.github.mongsil3344.qnow.question.domain.QuestionKind;
 import io.github.mongsil3344.qnow.question.domain.QuestionUpvote;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionUpvoteRepository;
@@ -74,8 +76,14 @@ public class QuestionUpvoteService {
     }
 
     private Question findActiveQuestionForUpdate(UUID questionId) {
-        return questionRepository.findActiveByIdForUpdate(questionId)
+        Question question = questionRepository.findActiveByIdForUpdate(questionId)
             .orElseThrow(QuestionNotFoundException::new);
+
+        if (question.getKind() == QuestionKind.CONTROL_REQUEST) {
+            throw new ControlRequestNotUpvotableException();
+        }
+
+        return question;
     }
 
     private ActiveParticipation requireActiveParticipant(

@@ -10,7 +10,8 @@ public record PresenterViewResponse(
     UUID presentationId,
     Integer pageNumber,
     long sequence,
-    Instant updatedAt
+    Instant updatedAt,
+    Instant controlExpiresAt
 ) {
 
     public static PresenterViewResponse from(PresenterViewResult result) {
@@ -20,7 +21,8 @@ public record PresenterViewResponse(
             result.presentationId(),
             result.pageNumber(),
             result.sequence(),
-            result.updatedAt()
+            result.updatedAt(),
+            result.controlExpiresAt()
         );
     }
 }

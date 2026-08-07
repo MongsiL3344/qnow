@@ -3,6 +3,7 @@ package io.github.mongsil3344.qnow.presentation.infrastructure.web;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -15,6 +16,7 @@ import io.github.mongsil3344.qnow.organization.domain.UserGroupRole;
 import io.github.mongsil3344.qnow.organization.infrastructure.repo.OrganizationRepository;
 import io.github.mongsil3344.qnow.organization.infrastructure.repo.UserGroupRepository;
 import io.github.mongsil3344.qnow.presentation.application.PresenterViewStateStore;
+import io.github.mongsil3344.qnow.presentation.application.PresenterControlStore;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewUnavailableException;
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewSnapshot;
@@ -28,7 +30,9 @@ import io.github.mongsil3344.qnow.user.domain.User;
 import io.github.mongsil3344.qnow.user.infrastructure.repo.UserRepository;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -77,6 +81,14 @@ class PresenterViewControllerTest {
 
     @MockitoBean
     private PresenterViewStateStore stateStore;
+
+    @MockitoBean
+    private PresenterControlStore controlStore;
+
+    @BeforeEach
+    void setUpControlStore() {
+        when(controlStore.getExpiry(any(UUID.class), any(UUID.class))).thenReturn(Optional.empty());
+    }
 
     @Test
     void 생성자는_제어_권한이_있는_빈_발표자_화면을_조회한다() throws Exception {
@@ -255,6 +267,153 @@ class PresenterViewControllerTest {
             .andExpect(status().isForbidden());
     }
 
+    @Test
+    void 개설자가_참여자에게_제어권을_부여한다() throws Exception {
+        Fixture fixture = createFixture(true, false);
+        UUID participantId = participantRepository
+            .findByUserIdAndSessionIdAndDeletedAtIsNull(
+                fixture.audience().getId(),
+                fixture.session().getId()
+            )
+            .orElseThrow()
+            .getId();
+
+        mockMvc.perform(put(controllerEndpoint(), fixture.organization().getId(), fixture.session().getId())
+                .with(csrf())
+                .session(login(fixture.creator()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(grantBody(participantId)))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void 개설자가_아니면_제어권을_부여할_수_없다() throws Exception {
+        Fixture fixture = createFixture(true, false);
+        UUID participantId = participantRepository
+            .findByUserIdAndSessionIdAndDeletedAtIsNull(
+                fixture.creator().getId(),
+                fixture.session().getId()
+            )
+            .orElseThrow()
+            .getId();
+
+        mockMvc.perform(put(controllerEndpoint(), fixture.organization().getId(), fixture.session().getId())
+                .with(csrf())
+                .session(login(fixture.audience()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(grantBody(participantId)))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("PRESENTER_VIEW_CONTROL_FORBIDDEN"));
+    }
+
+    @Test
+    void 제어권을_받은_참여자가_페이지를_변경할_수_있다() throws Exception {
+        Fixture fixture = createFixture(true, false);
+        UUID participantId = participantRepository
+            .findByUserIdAndSessionIdAndDeletedAtIsNull(
+                fixture.audience().getId(),
+                fixture.session().getId()
+            )
+            .orElseThrow()
+            .getId();
+        Instant expiresAt = Instant.parse("2026-08-05T12:00:00Z");
+        when(controlStore.getExpiry(fixture.session().getId(), participantId)).thenReturn(Optional.of(expiresAt));
+        when(stateStore.update(
+            org.mockito.ArgumentMatchers.eq(fixture.session().getId()),
+            org.mockito.ArgumentMatchers.eq(fixture.presentation().getId()),
+            org.mockito.ArgumentMatchers.eq(5),
+            any(Instant.class)
+        )).thenReturn(snapshot(fixture, 5, 1));
+
+        mockMvc.perform(put(endpoint(), fixture.organization().getId(), fixture.session().getId())
+                .with(csrf())
+                .session(login(fixture.audience()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody(fixture.presentation().getId(), 5)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.canControl").value(true));
+    }
+
+    @Test
+    void 제어권을_받은_게스트가_페이지를_변경할_수_있다() throws Exception {
+        Fixture fixture = createFixture(false, false);
+        Participant guest = participantRepository.save(Participant.guest("guest", fixture.session()));
+        Instant expiresAt = Instant.parse("2026-08-05T12:00:00Z");
+        when(controlStore.getExpiry(fixture.session().getId(), guest.getId())).thenReturn(Optional.of(expiresAt));
+        when(stateStore.update(
+            org.mockito.ArgumentMatchers.eq(fixture.session().getId()),
+            org.mockito.ArgumentMatchers.eq(fixture.presentation().getId()),
+            org.mockito.ArgumentMatchers.eq(5),
+            any(Instant.class)
+        )).thenReturn(snapshot(fixture, 5, 1));
+
+        mockMvc.perform(put(endpoint(), fixture.organization().getId(), fixture.session().getId())
+                .with(csrf())
+                .session(guestSession(guest, fixture.session()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody(fixture.presentation().getId(), 5)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.canControl").value(true));
+    }
+
+    @Test
+    void 위임받은_참여자는_자신의_제어권만_해제할_수_있다() throws Exception {
+        Fixture fixture = createFixture(true, false);
+        UUID participantId = participantRepository
+            .findByUserIdAndSessionIdAndDeletedAtIsNull(
+                fixture.audience().getId(),
+                fixture.session().getId()
+            )
+            .orElseThrow()
+            .getId();
+
+        mockMvc.perform(delete(controllerEndpoint(), fixture.organization().getId(), fixture.session().getId())
+                .with(csrf())
+                .session(login(fixture.audience()))
+                .queryParam("participantId", participantId.toString()))
+            .andExpect(status().isNoContent());
+
+        mockMvc.perform(delete(controllerEndpoint(), fixture.organization().getId(), fixture.session().getId())
+                .with(csrf())
+                .session(login(fixture.audience()))
+                .queryParam("participantId", fixture.session().getCreatorId().toString()))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void 조회_응답에_제어_만료시각이_포함된다() throws Exception {
+        Fixture fixture = createFixture(true, false);
+        UUID participantId = participantRepository
+            .findByUserIdAndSessionIdAndDeletedAtIsNull(
+                fixture.audience().getId(),
+                fixture.session().getId()
+            )
+            .orElseThrow()
+            .getId();
+        Instant expiresAt = Instant.parse("2026-08-05T12:00:00Z");
+        when(controlStore.getExpiry(fixture.session().getId(), participantId)).thenReturn(Optional.of(expiresAt));
+        when(stateStore.get(fixture.session().getId())).thenReturn(PresenterViewSnapshot.empty(fixture.session().getId()));
+
+        mockMvc.perform(get(endpoint(), fixture.organization().getId(), fixture.session().getId())
+                .session(login(fixture.audience())))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.canControl").value(true))
+            .andExpect(jsonPath("$.controlExpiresAt").value(expiresAt.toString()));
+    }
+
+    @Test
+    void 비참여자에게는_제어권을_부여할_수_없다() throws Exception {
+        Fixture fixture = createFixture(true, false);
+
+        mockMvc.perform(put(controllerEndpoint(), fixture.organization().getId(), fixture.session().getId())
+                .with(csrf())
+                .session(login(fixture.creator()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(grantBody(UUID.randomUUID())))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("PRESENTER_CONTROL_TARGET_INVALID"));
+    }
+
     private Fixture createFixture(boolean audienceParticipates, boolean ended) {
         User creator = saveUser("creator");
         User audience = saveUser("audience");
@@ -351,10 +510,20 @@ class PresenterViewControllerTest {
         return "/organizations/{organizationId}/sessions/{sessionId}/presenter-view";
     }
 
+    private String controllerEndpoint() {
+        return "/organizations/{organizationId}/sessions/{sessionId}/presenter-view/controller";
+    }
+
     private String updateBody(UUID presentationId, int pageNumber) {
         return """
             {"presentationId":"%s","pageNumber":%d}
             """.formatted(presentationId, pageNumber);
+    }
+
+    private String grantBody(UUID participantId) {
+        return """
+            {"participantId":"%s"}
+            """.formatted(participantId);
     }
 
     private record Fixture(

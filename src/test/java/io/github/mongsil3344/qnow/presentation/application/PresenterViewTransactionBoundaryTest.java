@@ -2,6 +2,7 @@ package io.github.mongsil3344.qnow.presentation.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import java.lang.reflect.Method;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ class PresenterViewTransactionBoundaryTest {
             "updatePresenterView",
             UUID.class,
             UUID.class,
-            UUID.class,
+            SessionActor.class,
             UUID.class,
             int.class
         ));

@@ -35,8 +35,11 @@ public class GetPresenterViewService {
         UUID sessionId,
         SessionActor actor
     ) {
-        // 세션 Host만 컨트롤 가능 (Host면 true 반환)
-        boolean canControl = accessValidator.isSessionCreator(organizationId, sessionId, actor);
+        PresenterViewAccessValidator.PresenterControlStatus controlStatus = accessValidator.getControlStatus(
+            organizationId,
+            sessionId,
+            actor
+        );
 
         // 해당 세션의 Redis 스냅샷 객체를 조회
         PresenterViewSnapshot snapshot = stateStore.get(sessionId);
@@ -57,6 +60,10 @@ public class GetPresenterViewService {
         }
 
         // 스냅샷 객체 반환
-        return PresenterViewResult.from(canControl, snapshot);
+        return PresenterViewResult.from(
+            controlStatus.canControl(),
+            controlStatus.controlExpiresAt(),
+            snapshot
+        );
     }
 }

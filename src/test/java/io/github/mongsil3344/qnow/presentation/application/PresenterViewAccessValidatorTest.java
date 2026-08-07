@@ -8,12 +8,14 @@ import static org.mockito.Mockito.when;
 
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewParticipantRequiredException;
+import java.time.Instant;
 import io.github.mongsil3344.qnow.session.api.SessionAccessApi;
 import io.github.mongsil3344.qnow.session.api.SessionActor;
 import io.github.mongsil3344.qnow.session.api.SessionEndedException;
 import io.github.mongsil3344.qnow.session.api.SessionQueryApi;
 import io.github.mongsil3344.qnow.session.api.SessionStatusApi;
 import java.util.UUID;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +34,19 @@ class PresenterViewAccessValidatorTest {
     @Mock
     private SessionAccessApi sessionAccessApi;
 
+    @Mock
+    private PresenterControlStore presenterControlStore;
+
     private PresenterViewAccessValidator validator;
 
     @BeforeEach
     void setUp() {
-        validator = new PresenterViewAccessValidator(sessionQueryApi, sessionStatusApi, sessionAccessApi);
+        validator = new PresenterViewAccessValidator(
+            sessionQueryApi,
+            sessionStatusApi,
+            sessionAccessApi,
+            presenterControlStore
+        );
     }
 
     @Test
@@ -46,7 +56,7 @@ class PresenterViewAccessValidatorTest {
         UUID userId = UUID.randomUUID();
         SessionActor actor = new SessionActor.Member(userId);
         when(sessionQueryApi.existsSessionInOrganization(sessionId, organizationId)).thenReturn(true);
-        when(sessionQueryApi.isActiveParticipant(sessionId, actor)).thenReturn(true);
+        when(sessionQueryApi.findActiveParticipantId(sessionId, actor)).thenReturn(Optional.of(UUID.randomUUID()));
         when(sessionAccessApi.isSessionCreator(sessionId, userId)).thenReturn(true);
 
         assertThat(validator.isSessionCreator(organizationId, sessionId, userId)).isTrue();
@@ -87,5 +97,29 @@ class PresenterViewAccessValidatorTest {
             .isInstanceOf(PresenterViewParticipantRequiredException.class);
 
         verifyNoInteractions(sessionAccessApi);
+    }
+
+    @Test
+    void 제어권을_위임받은_참여자는_만료시각과_함께_제어할_수_있다() {
+        UUID organizationId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
+        Instant expiresAt = Instant.parse("2026-08-05T12:00:00Z");
+        SessionActor actor = new SessionActor.Member(userId);
+        when(sessionQueryApi.existsSessionInOrganization(sessionId, organizationId)).thenReturn(true);
+        when(sessionQueryApi.findActiveParticipantId(sessionId, actor)).thenReturn(Optional.of(participantId));
+        when(presenterControlStore.getExpiry(sessionId, participantId)).thenReturn(Optional.of(expiresAt));
+
+        PresenterViewAccessValidator.PresenterControlStatus status = validator.getControlStatus(
+            organizationId,
+            sessionId,
+            actor
+        );
+
+        assertThat(status.creator()).isFalse();
+        assertThat(status.canControl()).isTrue();
+        assertThat(status.controlExpiresAt()).isEqualTo(expiresAt);
+        assertThat(status.participantId()).isEqualTo(participantId);
     }
 }

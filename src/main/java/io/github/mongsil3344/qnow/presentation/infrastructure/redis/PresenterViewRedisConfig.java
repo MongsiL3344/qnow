@@ -21,11 +21,14 @@ public class PresenterViewRedisConfig {
     RedisMessageListenerContainer presenterViewRedisMessageListenerContainer(
         RedisConnectionFactory connectionFactory,
         PresenterViewRedisMessageListener listener, // Redis 메세지를 처리할 리스너 구현체
-        @Value("${qnow.presenter-view.channel:qnow:presenter-view:events}") String channel
+        PresenterControlRedisMessageListener controlListener,
+        @Value("${qnow.presenter-view.channel:qnow:presenter-view:events}") String channel,
+        @Value("${qnow.presenter-view.control-channel:qnow:presenter-view:control-events}") String controlChannel
     ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.addMessageListener(listener, new ChannelTopic(channel)); // 컨테이너가 구독할 채널, 이벤트를 받으면 호출할 리스너 설정
+        container.addMessageListener(controlListener, new ChannelTopic(controlChannel));
         return container;
     }
 }

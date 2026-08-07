@@ -106,6 +106,7 @@ public class QuestionQueryApiImpl implements QuestionQueryApi {
         return new QuestionSummary(
             question.getId(),
             question.getQuestionerId(),
+            question.getKind().name(),
             question.getContent(),
             question.isAnonymous(),
             question.getPageStart(),
@@ -113,7 +114,8 @@ public class QuestionQueryApiImpl implements QuestionQueryApi {
             toSelection(question.getSelection()),
             question.getUpvoteCount(),
             upvotedByMe,
-            question.getCreatedAt()
+            question.getCreatedAt(),
+            question.getApprovedAt()
         );
     }
 

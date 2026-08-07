@@ -74,16 +74,19 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/organizations/*/sessions/*/participants/exit",
-                                "/presentations/*/questions"
+                                "/presentations/*/questions",
+                                "/presentations/*/questions/control-requests"
                         ).hasAnyRole("MEMBER", "GUEST")
                         .requestMatchers(
                                 HttpMethod.PUT,
-                                "/questions/*/upvote"
+                                "/questions/*/upvote",
+                                "/organizations/*/sessions/*/presenter-view"
                         ).hasAnyRole("MEMBER", "GUEST")
                         .requestMatchers(
                                 HttpMethod.DELETE,
                                 "/questions/*/upvote",
-                                "/questions/*"
+                                "/questions/*",
+                                "/organizations/*/sessions/*/presenter-view/controller"
                         ).hasAnyRole("MEMBER", "GUEST")
                         .requestMatchers("/ws").hasAnyRole("MEMBER", "GUEST")
                         .requestMatchers("/organizations/**", "/users/**").hasRole("MEMBER")

@@ -24,11 +24,15 @@ import io.github.mongsil3344.qnow.presentation.application.exception.Presentatio
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationObjectNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationSessionNotFoundException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresentationUploadForbiddenException;
+import io.github.mongsil3344.qnow.presentation.application.exception.PresenterControlTargetInvalidException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewControlForbiddenException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewParticipantRequiredException;
 import io.github.mongsil3344.qnow.presentation.application.exception.PresenterViewUnavailableException;
+import io.github.mongsil3344.qnow.question.application.exception.ControlRequestApprovalForbiddenException;
+import io.github.mongsil3344.qnow.question.application.exception.ControlRequestNotUpvotableException;
 import io.github.mongsil3344.qnow.question.application.exception.GuestUpvoteNotAllowedException;
 import io.github.mongsil3344.qnow.question.application.exception.InvalidQuestionReferenceException;
+import io.github.mongsil3344.qnow.question.application.exception.NotControlRequestException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionDeleteForbiddenException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionNotFoundException;
 import io.github.mongsil3344.qnow.question.application.exception.QuestionPresentationNotFoundException;
@@ -266,6 +270,44 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.FORBIDDEN)
             .body(new ErrorResponse("PRESENTER_VIEW_CONTROL_FORBIDDEN", e.getMessage()));
+    }
+
+    // 발표자 화면 - 제어권 부여 대상이 유효하지 않음
+    @ExceptionHandler(PresenterControlTargetInvalidException.class)
+    public ResponseEntity<ErrorResponse> handlePresenterControlTargetInvalid(
+        PresenterControlTargetInvalidException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("PRESENTER_CONTROL_TARGET_INVALID", e.getMessage()));
+    }
+
+    // 질문 - 제어 요청 승인 권한 없음
+    @ExceptionHandler(ControlRequestApprovalForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleControlRequestApprovalForbidden(
+        ControlRequestApprovalForbiddenException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("CONTROL_REQUEST_APPROVAL_FORBIDDEN", e.getMessage()));
+    }
+
+    // 질문 - 제어 요청에는 공감 불가
+    @ExceptionHandler(ControlRequestNotUpvotableException.class)
+    public ResponseEntity<ErrorResponse> handleControlRequestNotUpvotable(
+        ControlRequestNotUpvotableException e
+    ) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("CONTROL_REQUEST_NOT_UPVOTABLE", e.getMessage()));
+    }
+
+    // 질문 - 제어 요청이 아닌 질문은 승인 불가
+    @ExceptionHandler(NotControlRequestException.class)
+    public ResponseEntity<ErrorResponse> handleNotControlRequest(NotControlRequestException e) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("NOT_CONTROL_REQUEST", e.getMessage()));
     }
 
     @ExceptionHandler(PresenterViewUnavailableException.class)

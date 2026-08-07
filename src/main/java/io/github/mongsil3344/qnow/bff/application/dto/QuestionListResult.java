@@ -23,7 +23,10 @@ public record QuestionListResult(
         QuestionSummary.Selection selection,
         int upvoteCount,
         boolean upvotedByMe,
-        Instant createdAt
+        Instant createdAt,
+        String kind,
+        boolean approved,
+        UUID questionerParticipantId
     ) {
     }
 }

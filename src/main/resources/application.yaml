@@ -45,6 +45,8 @@ qnow:
   presenter-view:
     ttl: ${QNOW_PRESENTER_VIEW_TTL:24h}
     channel: ${QNOW_PRESENTER_VIEW_CHANNEL:qnow:presenter-view:events}
+    control-channel: ${QNOW_PRESENTER_VIEW_CONTROL_CHANNEL:qnow:presenter-view:control-events}
+    control-ttl: ${QNOW_PRESENTER_VIEW_CONTROL_TTL:10m}
     realtime-enabled: ${QNOW_PRESENTER_VIEW_REALTIME_ENABLED:true}
   websocket:
     allowed-origins: ${QNOW_WEBSOCKET_ALLOWED_ORIGINS:http://localhost:3000}

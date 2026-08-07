@@ -181,7 +181,12 @@ public class GetQuestionListService {
             question.selection(),
             question.upvoteCount(),
             question.upvotedByMe(),
-            question.createdAt()
+            question.createdAt(),
+            question.kind(),
+            question.approvedAt() != null,
+            "CONTROL_REQUEST".equals(question.kind())
+                ? question.questionerParticipantId()
+                : null
         );
     }
 

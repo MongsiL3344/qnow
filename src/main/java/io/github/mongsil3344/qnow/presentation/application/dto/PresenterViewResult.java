@@ -10,17 +10,27 @@ public record PresenterViewResult(
     UUID presentationId,
     Integer pageNumber,
     long sequence,
-    Instant updatedAt
+    Instant updatedAt,
+    Instant controlExpiresAt
 ) {
 
     public static PresenterViewResult from(boolean canControl, PresenterViewSnapshot snapshot) {
+        return from(canControl, null, snapshot);
+    }
+
+    public static PresenterViewResult from(
+        boolean canControl,
+        Instant controlExpiresAt,
+        PresenterViewSnapshot snapshot
+    ) {
         return new PresenterViewResult(
             canControl,
             snapshot.sessionId(),
             snapshot.presentationId(),
             snapshot.pageNumber(),
             snapshot.sequence(),
-            snapshot.updatedAt()
+            snapshot.updatedAt(),
+            controlExpiresAt
         );
     }
 }

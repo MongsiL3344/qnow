@@ -35,7 +35,10 @@ public record QuestionListResponse(
         QuestionSummary.Selection selection,
         int upvoteCount,
         boolean upvotedByMe,
-        Instant createdAt
+        Instant createdAt,
+        String kind,
+        boolean approved,
+        UUID questionerParticipantId
     ) {
 
         private static QuestionResponse from(QuestionListResult.QuestionResult result) {
@@ -50,7 +53,10 @@ public record QuestionListResponse(
                 result.selection(),
                 result.upvoteCount(),
                 result.upvotedByMe(),
-                result.createdAt()
+                result.createdAt(),
+                result.kind(),
+                result.approved(),
+                result.questionerParticipantId()
             );
         }
     }

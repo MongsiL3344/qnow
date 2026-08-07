@@ -12,6 +12,7 @@ import io.github.mongsil3344.qnow.organization.infrastructure.repo.OrganizationR
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
 import io.github.mongsil3344.qnow.question.domain.Question;
+import io.github.mongsil3344.qnow.question.domain.QuestionKind;
 import io.github.mongsil3344.qnow.question.domain.QuestionSelection;
 import io.github.mongsil3344.qnow.question.infrastructure.repo.QuestionRepository;
 import io.github.mongsil3344.qnow.session.domain.Participant;
@@ -83,11 +84,13 @@ class QuestionControllerTest {
         assertThat(question.getPresentationId()).isEqualTo(fixture.presentation().getId());
         assertThat(question.getQuestionerId()).isEqualTo(fixture.participant().getId());
         assertThat(question.getContent()).isEqualTo("트랜잭션은 어느 시점에 커밋되나요?");
+        assertThat(question.getKind()).isEqualTo(QuestionKind.QUESTION);
         assertThat(question.isAnonymous()).isFalse();
         assertThat(question.getPageStart()).isEqualTo(3);
         assertThat(question.getPageEnd()).isEqualTo(5);
         assertThat(question.getUpvoteCount()).isZero();
         assertThat(question.getSelection()).isNull();
+        assertThat(question.getApprovedAt()).isNull();
         assertThat(question.getCreatedAt()).isNotNull();
     }
 

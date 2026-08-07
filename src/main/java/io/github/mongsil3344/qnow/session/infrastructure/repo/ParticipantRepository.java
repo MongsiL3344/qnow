@@ -20,20 +20,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
     Optional<Participant> findByIdAndSessionIdAndUserIdIsNullAndDeletedAtIsNull(UUID id, UUID sessionId);
 
     @Query("""
-        select case when count(p) > 0 then true else false end
-        from Participant p
-        where p.session.id = :sessionId
-            and p.userId = :userId
-            and p.deletedAt is null
-            and p.session.deletedAt is null
-            and p.session.endAt is null
-        """)
-    boolean existsActiveParticipant(
-        @Param("sessionId") UUID sessionId,
-        @Param("userId") UUID userId
-    );
-
-    @Query("""
         select p.id
         from Participant p
         where p.session.id = :sessionId

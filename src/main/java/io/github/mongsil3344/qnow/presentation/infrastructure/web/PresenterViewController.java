@@ -1,12 +1,14 @@
 package io.github.mongsil3344.qnow.presentation.infrastructure.web;
 
 import io.github.mongsil3344.qnow.presentation.application.GetPresenterViewService;
+import io.github.mongsil3344.qnow.presentation.application.GrantPresenterControlService;
+import io.github.mongsil3344.qnow.presentation.application.RevokePresenterControlService;
 import io.github.mongsil3344.qnow.presentation.application.UpdatePresenterViewService;
 import io.github.mongsil3344.qnow.presentation.application.dto.PresenterViewResult;
+import io.github.mongsil3344.qnow.presentation.infrastructure.web.dto.GrantPresenterControlRequest;
 import io.github.mongsil3344.qnow.presentation.infrastructure.web.dto.PresenterViewResponse;
 import io.github.mongsil3344.qnow.presentation.infrastructure.web.dto.UpdatePresenterViewRequest;
 import io.github.mongsil3344.qnow.session.api.SessionActor;
-import io.github.mongsil3344.qnow.user.api.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,11 +16,12 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +33,8 @@ public class PresenterViewController {
 
     private final GetPresenterViewService getPresenterViewService;
     private final UpdatePresenterViewService updatePresenterViewService;
+    private final GrantPresenterControlService grantPresenterControlService;
+    private final RevokePresenterControlService revokePresenterControlService;
 
     @Operation(summary = "현재 발표자 화면 조회 API")
     @GetMapping
@@ -51,7 +56,7 @@ public class PresenterViewController {
     @Operation(summary = "발표자 화면 변경 API")
     @PutMapping
     public ResponseEntity<PresenterViewResponse> updatePresenterView(
-        @AuthenticationPrincipal UserPrincipal principal,
+        @Parameter(hidden = true) SessionActor actor,
         @PathVariable UUID organizationId,
         @PathVariable UUID sessionId,
         @Valid @RequestBody UpdatePresenterViewRequest request
@@ -59,10 +64,44 @@ public class PresenterViewController {
         PresenterViewResult result = updatePresenterViewService.updatePresenterView(
             organizationId,
             sessionId,
-            principal.id(),
+            actor,
             request.presentationId(),
             request.pageNumber()
         );
         return ResponseEntity.ok(PresenterViewResponse.from(result));
+    }
+
+    @Operation(summary = "발표자 화면 제어권 위임 API")
+    @PutMapping("/controller")
+    public ResponseEntity<Void> grantPresenterControl(
+        @Parameter(hidden = true) SessionActor actor,
+        @PathVariable UUID organizationId,
+        @PathVariable UUID sessionId,
+        @Valid @RequestBody GrantPresenterControlRequest request
+    ) {
+        grantPresenterControlService.grant(
+            organizationId,
+            sessionId,
+            actor,
+            request.participantId()
+        );
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "발표자 화면 제어권 회수 API")
+    @DeleteMapping("/controller")
+    public ResponseEntity<Void> revokePresenterControl(
+        @Parameter(hidden = true) SessionActor actor,
+        @PathVariable UUID organizationId,
+        @PathVariable UUID sessionId,
+        @RequestParam UUID participantId
+    ) {
+        revokePresenterControlService.revoke(
+            organizationId,
+            sessionId,
+            actor,
+            participantId
+        );
+        return ResponseEntity.noContent().build();
     }
 }

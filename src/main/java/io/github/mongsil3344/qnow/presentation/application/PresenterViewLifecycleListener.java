@@ -2,6 +2,7 @@ package io.github.mongsil3344.qnow.presentation.application;
 
 import io.github.mongsil3344.qnow.presentation.application.event.PresentationDeletedEvent;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewClearReason;
+import io.github.mongsil3344.qnow.session.api.ParticipantExitedEvent;
 import io.github.mongsil3344.qnow.session.api.SessionEndedEvent;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 public class PresenterViewLifecycleListener {
 
     private final PresenterViewStateStore stateStore;
+    private final PresenterControlStore controlStore;
 
     // 파라미터로 들어오는 객체의 타입에 따라 어떤 리스너가 실행될지 자동으로 결정됨
     @ApplicationModuleListener
@@ -30,6 +32,12 @@ public class PresenterViewLifecycleListener {
             Instant.now(),
             PresenterViewClearReason.SESSION_ENDED
         );
+        controlStore.clearSession(event.sessionId());
+    }
+
+    @ApplicationModuleListener
+    public void on(ParticipantExitedEvent event) {
+        controlStore.revoke(event.sessionId(), event.participantId());
     }
 
     @ApplicationModuleListener

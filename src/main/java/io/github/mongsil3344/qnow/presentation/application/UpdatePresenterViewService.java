@@ -7,6 +7,7 @@ import io.github.mongsil3344.qnow.presentation.application.exception.PresenterVi
 import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.UploadStatus;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import java.time.Instant;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -33,13 +34,16 @@ public class UpdatePresenterViewService {
     public PresenterViewResult updatePresenterView(
         UUID organizationId,
         UUID sessionId,
-        UUID userId,
+        SessionActor actor,
         UUID presentationId,
         int pageNumber
     ) {
-        // Host 여부 판단
-        boolean canControl = accessValidator.isSessionCreator(organizationId, sessionId, userId);
-        if (!canControl) {
+        PresenterViewAccessValidator.PresenterControlStatus controlStatus = accessValidator.getControlStatus(
+            organizationId,
+            sessionId,
+            actor
+        );
+        if (!controlStatus.canControl()) {
             throw new PresenterViewControlForbiddenException();
         }
 
@@ -62,6 +66,10 @@ public class UpdatePresenterViewService {
             Instant.now()
         );
 
-        return PresenterViewResult.from(true, snapshot);
+        return PresenterViewResult.from(
+            true,
+            controlStatus.controlExpiresAt(),
+            snapshot
+        );
     }
 }

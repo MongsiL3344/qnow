@@ -46,7 +46,14 @@ class GetPresenterViewServiceTest {
         UUID userId = UUID.randomUUID();
         SessionActor actor = new SessionActor.Member(userId);
         PresenterViewSnapshot empty = PresenterViewSnapshot.empty(sessionId);
-        when(accessValidator.isSessionCreator(organizationId, sessionId, actor)).thenReturn(true);
+        when(accessValidator.getControlStatus(organizationId, sessionId, actor)).thenReturn(
+            new PresenterViewAccessValidator.PresenterControlStatus(
+                true,
+                true,
+                null,
+                UUID.randomUUID()
+            )
+        );
         when(stateStore.get(sessionId)).thenReturn(empty);
 
         PresenterViewResult result = service.getPresenterView(organizationId, sessionId, userId);
@@ -76,7 +83,14 @@ class GetPresenterViewServiceTest {
             11,
             Instant.parse("2026-07-13T10:21:00Z")
         );
-        when(accessValidator.isSessionCreator(organizationId, sessionId, actor)).thenReturn(false);
+        when(accessValidator.getControlStatus(organizationId, sessionId, actor)).thenReturn(
+            new PresenterViewAccessValidator.PresenterControlStatus(
+                false,
+                false,
+                null,
+                UUID.randomUUID()
+            )
+        );
         when(stateStore.get(sessionId)).thenReturn(stale);
         when(stateStore.clearPresentation(
             org.mockito.ArgumentMatchers.eq(sessionId),

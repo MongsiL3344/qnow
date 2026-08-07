@@ -14,6 +14,7 @@ import io.github.mongsil3344.qnow.presentation.domain.Presentation;
 import io.github.mongsil3344.qnow.presentation.domain.PresenterViewSnapshot;
 import io.github.mongsil3344.qnow.presentation.domain.UploadStatus;
 import io.github.mongsil3344.qnow.presentation.infrastructure.repo.PresentationRepository;
+import io.github.mongsil3344.qnow.session.api.SessionActor;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,7 +56,10 @@ class UpdatePresenterViewServiceTest {
             1,
             Instant.parse("2026-07-13T10:20:30Z")
         );
-        when(accessValidator.isSessionCreator(organizationId, sessionId, userId)).thenReturn(true);
+        SessionActor actor = new SessionActor.Member(userId);
+        when(accessValidator.getControlStatus(organizationId, sessionId, actor)).thenReturn(
+            new PresenterViewAccessValidator.PresenterControlStatus(true, true, null, UUID.randomUUID())
+        );
         when(presentationRepository.findByIdAndSessionIdAndUploadStatusAndDeletedAtIsNull(
             presentation.getId(),
             sessionId,
@@ -72,7 +76,7 @@ class UpdatePresenterViewServiceTest {
         assertThat(service.updatePresenterView(
             organizationId,
             sessionId,
-            userId,
+            actor,
             presentation.getId(),
             5
         )).isEqualTo(PresenterViewResult.from(true, expected));
@@ -83,12 +87,15 @@ class UpdatePresenterViewServiceTest {
         UUID organizationId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        when(accessValidator.isSessionCreator(organizationId, sessionId, userId)).thenReturn(false);
+        SessionActor actor = new SessionActor.Member(userId);
+        when(accessValidator.getControlStatus(organizationId, sessionId, actor)).thenReturn(
+            new PresenterViewAccessValidator.PresenterControlStatus(false, false, null, UUID.randomUUID())
+        );
 
         assertThatThrownBy(() -> service.updatePresenterView(
             organizationId,
             sessionId,
-            userId,
+            actor,
             UUID.randomUUID(),
             1
         )).isInstanceOf(PresenterViewControlForbiddenException.class);
@@ -101,12 +108,15 @@ class UpdatePresenterViewServiceTest {
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         UUID presentationId = UUID.randomUUID();
-        when(accessValidator.isSessionCreator(organizationId, sessionId, userId)).thenReturn(true);
+        SessionActor actor = new SessionActor.Member(userId);
+        when(accessValidator.getControlStatus(organizationId, sessionId, actor)).thenReturn(
+            new PresenterViewAccessValidator.PresenterControlStatus(true, true, null, UUID.randomUUID())
+        );
 
         assertThatThrownBy(() -> service.updatePresenterView(
             organizationId,
             sessionId,
-            userId,
+            actor,
             presentationId,
             1
         )).isInstanceOf(PresentationNotFoundException.class);
@@ -120,7 +130,10 @@ class UpdatePresenterViewServiceTest {
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         Presentation presentation = createPresentation(sessionId, userId, 12);
-        when(accessValidator.isSessionCreator(organizationId, sessionId, userId)).thenReturn(true);
+        SessionActor actor = new SessionActor.Member(userId);
+        when(accessValidator.getControlStatus(organizationId, sessionId, actor)).thenReturn(
+            new PresenterViewAccessValidator.PresenterControlStatus(true, true, null, UUID.randomUUID())
+        );
         when(presentationRepository.findByIdAndSessionIdAndUploadStatusAndDeletedAtIsNull(
             presentation.getId(),
             sessionId,
@@ -130,7 +143,7 @@ class UpdatePresenterViewServiceTest {
         assertThatThrownBy(() -> service.updatePresenterView(
             organizationId,
             sessionId,
-            userId,
+            actor,
             presentation.getId(),
             13
         )).isInstanceOf(InvalidPresenterViewPageException.class);
@@ -151,7 +164,10 @@ class UpdatePresenterViewServiceTest {
             9,
             Instant.parse("2026-07-13T10:20:30Z")
         );
-        when(accessValidator.isSessionCreator(organizationId, sessionId, userId)).thenReturn(true);
+        SessionActor actor = new SessionActor.Member(userId);
+        when(accessValidator.getControlStatus(organizationId, sessionId, actor)).thenReturn(
+            new PresenterViewAccessValidator.PresenterControlStatus(true, true, null, UUID.randomUUID())
+        );
         when(presentationRepository.findByIdAndSessionIdAndUploadStatusAndDeletedAtIsNull(
             presentation.getId(),
             sessionId,
@@ -168,7 +184,7 @@ class UpdatePresenterViewServiceTest {
         assertThat(service.updatePresenterView(
             organizationId,
             sessionId,
-            userId,
+            actor,
             presentation.getId(),
             3
         ).sequence()).isEqualTo(9);
